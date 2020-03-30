@@ -36,10 +36,11 @@ mdata[['logCapital', 'logCapital_trend', 'logGDP', 'logGDP_trend']].plot()
 mdata[['logCapital_cycle', 'logGDP_cycle']].plot()
 
 data = mdata[['logCapital_cycle', 'logGDP_cycle']]
+data = data[data.index < '2020-03-31']
 
 # make a VAR model
 model = VAR(data)
-results = model.fit(1)
+results = model.fit(4)
 #results.summary()
 #results.plot()
 #results.plot_acorr()
