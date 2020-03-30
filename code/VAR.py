@@ -9,6 +9,7 @@ Created on Sun Mar 29 20:58:17 2020
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from pandas_datareader.data import DataReader
 import statsmodels.api as sm
 from statsmodels.tsa.api import VAR
 
@@ -56,16 +57,15 @@ irf.plot(orth=True)
 irf.plot(orth=True, impulse='logGDP_cycle', response='logCapital_cycle')
 irf.plot_cum_effects(orth=True)
 
-from pandas_datareader.data import DataReader
-# Get the datasets from FRED
-start = '1960-01-01'
-end = '2020-12-01'
-rec = DataReader('USREC', 'fred', start=start, end=end)
-reces = rec.resample('Q', convention='start').max()
+# Get the NBER based Recession Indicators for the United States from the Period following the Peak through the Trough from FRED
+start = '1960-04-01'
+end = '2021-01-01'
+rec = DataReader('USRECQ', 'fred', start=start, end=end)
 
-fig, ax = plt.subplots(figsize=(13,3))
+fig, ax = plt.subplots(figsize=(13,8))
 dates = data.index #data.index._mpl_repr()
 ax.plot(data)
+ax.legend(data)
 ylim = ax.get_ylim()
-ax.fill_between(dates[:len(reces)], ylim[0], ylim[1], reces.values[:,0], facecolor='k', alpha=0.3)
+ax.fill_between(dates[:len(rec)], ylim[0], ylim[1], rec.values[:,0], facecolor='k', alpha=0.3)
 
