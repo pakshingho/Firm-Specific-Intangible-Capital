@@ -6,8 +6,10 @@ use http://www.nber.org/nberces/nberces5811/sic5811.dta
 xtset sic year, yearly
 
 gen output = log(vadd / piship)
-gen capital = log(l.cap)
-gen gcapital = log(l.cap + l.invent / piship)
+gen capital = log(cap)
+gen gcapital = log(cap + invent / piship)
+*gen capital = log(l.cap)
+*gen gcapital = log(l.cap + l.invent / piship)
 gen dln_output = d.output
 gen dln_capital = d.capital
 gen dln_gcapital = d.gcapital
@@ -45,9 +47,9 @@ pvarirf, step(25) oirf byopt(yrescale) name(hp_4lagssic3366, replace)
 pvargranger
 
 * Level
-pvar capital output, lags(4) instlags(1/4) gmmstyle vce(cluster sic year)
+pvar capital output, lags(2) instlags(1/2) gmmstyle vce(cluster sic year)
 pvarstable, graph
-pvarirf, step(25) oirf mc(200) byopt(yrescale) name(level_2lags, replace)
+pvarirf, step(50) oirf byopt(yrescale) name(level_2lags, replace)
 pvargranger
 
 * Level more lag instruments
@@ -56,31 +58,42 @@ pvar capital output, instlags(1/4)
 pvarirf, step(50) oirf mc(200) byopt(yrescale) name(level_ninst, replace)
 
 * Log diff
-pvarsoc dln_capital dln_output, pvaropts(instl(1/10))
-
-pvar dln_capital dln_output, lags(4) instlags(1/4) gmmstyle td vce(cluster sic year)
-pvarstable, graph
-pvarirf, step(25) oirf byopt(yrescale) name(diff_4lagsgmmclusteryeartd, replace)
-pvargranger
-
+*pvarsoc dln_capital dln_output, maxlag(10) pvaropts(instl(1/10))
 pvar dln_capital dln_output, lags(4) instlags(1/4) gmmstyle vce(cluster sic year)
 pvarstable, graph
-pvarirf, step(25) oirf byopt(yrescale) name(diff_4lagsgmmclusteryear, replace)
+pvarirf, step(25) oirf mc(200) byopt(yrescale) name(diff_4lagsgmmclusteryear, replace)
 pvargranger
 
+*pvarsoc dln_gcapital dln_output, maxlag(10) pvaropts(instl(1/10))
 pvar dln_gcapital dln_output, lags(4) instlags(1/4) gmmstyle vce(cluster sic year)
 pvarstable, graph
-pvarirf, step(25) oirf byopt(yrescale) name(diff_4lagsgmmclusteryeargc, replace)
+pvarirf, step(25) oirf mc(200) byopt(yrescale) name(diff_4lagsgmmclusteryeargc, replace)
 pvargranger
 
-* Alternative order
-pvar dln_output dln_capital, lags(2)
+* Alternative order (also hump-shaped)
+pvar dln_output dln_capital, lags(4) instlags(1/4) gmmstyle vce(cluster sic year)
+pvarstable, graph
+pvarirf, step(25) oirf mc(200) byopt(yrescale) name(diff_4lagsgmmclusteryearalt, replace)
+pvargranger
 
-pvarirf, step(50) oirf mc(200) byopt(yrescale) name(diff_alt_2lags, replace)
+/******************** 
+industry by industry 
+*********************/
+* count number of industry
+levelsof sic
+display "Number of distinct values of my_variable is: " = r(r)
 
-* Log diff more lag instruments
-pvar dln_capital dln_output, instlags(1/4)
+* plot and save time series
+levels sic
+foreach s in `r(levels)' {
+		tsline dln_output dln_capital if sic==`s', name(logdiff`s', replace) saving(output/figures/indbyind/logdiff`s', replace)
+}
 
-pvarirf, step(50) oirf mc(200) byopt(yrescale) name(diff_ninst, replace)
+* plot and save irf
+levels sic
+foreach s in `r(levels)' {
+		var dln_capital dln_output if sic == `s', lags(1/3)
+		irf create irf`s', step(10) set("output/figures/indbyind", replace)
+		irf graph oirf, impulse(dln_output) response(dln_capital) name(irf`s', replace) saving(output/figures/indbyind/irf`s', replace)
+}
 
-*filter
