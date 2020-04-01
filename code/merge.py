@@ -7,7 +7,6 @@ Created on Fri Mar 27 18:21:35 2020
 """
 
 import pandas as pd
-
 import wrds
 
 ces = pd.read_csv('http://www.nber.org/nberces/nberces5811/sic5811.csv') # sic version
@@ -32,9 +31,30 @@ totalq = conn.raw_sql("""
                    select *
                    from totalq.total_q
                    """)
-                   
-df = pd.merge(totalq, names, on='gvkey')
-df.sic = df.sic.astype(int)
-df = pd.merge(df, ces, left_on=['sic', 'fyear'], right_on=['sic', 'year'])
 
-df.to_csv('capital.csv', index=False)
+funda = conn.raw_sql("""
+                     select gvkey, fyear, at, sale, ppegt
+                     from
+                     comp.funda
+                     where
+                     (sale > 0 and at > 0)
+                     and consol = 'C'
+                     and indfmt = 'INDL'
+                     and datafmt = 'STD'
+                     and popsrc = 'D'
+                     and curcd = 'USD'
+                     and final = 'Y'
+                     and fic = 'USA'
+                     and datadate >= '1949-01-01'
+                     """)
+conn.close()
+
+df = pd.merge(totalq, names, on='gvkey')
+df = pd.merge(df, funda, on=['gvkey', 'fyear'])
+df.drop(columns=['q_tot', 'conm', 'tic', 'cusip', 'cik', 'gsubind', 'gind', 'year1', 'year2'], inplace=True)
+df = df.groupby(['sic', 'fyear'], as_index=False).sum()
+
+df.sic = df.sic.astype(int)
+data = pd.merge(df, ces, left_on=['sic', 'fyear'], right_on=['sic', 'year'])
+
+data.to_csv('../data/capital.csv', index=False)
