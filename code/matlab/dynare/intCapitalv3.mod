@@ -102,19 +102,19 @@ model;
     kI     = y2 + (1 - deltaI) * kI(-1);
 
     // 4. First order equation for kT1
-    alpha1 * theta1 * y1 / k1 * (kT1 / k1) ^ (- 1 / lambda1) = 
-    q * alpha2 * theta2 * y2 / k2 * (kT2 / k2) ^ (- 1 / lambda2);
+    alpha1 * theta1 * y1 / k1 * (k1 / kT1) ^ (1 / lambda1) = 
+    q * alpha2 * theta2 * y2 / k2 * (k2 / kT2) ^ (1 / lambda2);
 
     // 5. First order equation for kI1
-    alpha1 * (1 - theta1) * y1 / k1 * (kI1 / k1) ^ (- 1 / lambda1) = 
-    q * alpha2 * (1 - theta2) * y2 / k2 * (kI2 / k2) ^ (- 1 / lambda2);    
+    alpha1 * (1 - theta1) * y1 / k1 * (k1 / kI1) ^ (1 / lambda1) = 
+    q * alpha2 * (1 - theta2) * y2 / k2 * (k2 / kI2) ^ (1 / lambda2);    
 
     // 6. First order equation for kT
-    (1 - deltaT) + q(+1) * alpha2 * theta2 * y2(+1) / k2(+1) * (kT2(+1) / k2(+1)) ^ (- 1 / lambda2) =
+    (1 - deltaT) + q(+1) * alpha2 * theta2 * y2(+1) / k2(+1) * (k2(+1) / kT2(+1)) ^ (1 / lambda2) =
     1 + ri;
 
     // 7. First order equation for kI
-    q(+1) * ( (1 - deltaI) + alpha2 * (1 - theta2) * y2(+1) / k2(+1) * (kI2(+1) / k2(+1)) ^ (- 1 / lambda2) ) = 
+    q(+1) * ( (1 - deltaI) + alpha2 * (1 - theta2) * y2(+1) / k2(+1) * (k2(+1) / kI2(+1)) ^ (1 / lambda2) ) = 
     (1 + ri) * q;
 
     // 8. First order equation for l1
