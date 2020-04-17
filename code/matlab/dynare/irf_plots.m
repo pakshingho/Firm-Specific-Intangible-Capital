@@ -32,21 +32,6 @@ close all;
 l1 = {irfs_ces_exp, irfs_tan_exp, irfs_int_exp};
 %l2 = {irfs_cd, irfs_ces, irfs_tan, irfs_int};
 l2 = {irfs_ces, irfs_tan, irfs_int};
-%%
-struct2table(oo_.irfs)
-
-fieldnames(oo_.irfs)
-
-struct2cell(oo_.irfs)
-
-
-S = irfs_ces_exp;
-fNames = fieldnames(S);
-for n = 1:length(fNames)
-    disp(S.(fNames{n}))
-end
-
-p.Color(4) = 0.25
 
 %% exp
 close all
@@ -174,7 +159,23 @@ han.XLabel.Visible='on';
 xlabel(han,'Time');
 %title(han,'yourTitle');
 
+%%
+% struct2table(oo_.irfs)
+% 
+% fieldnames(oo_.irfs)
+% 
+% struct2cell(oo_.irfs)
+% 
+% 
+% S = irfs_ces_exp;
+% fNames = fieldnames(S);
+% for n = 1:length(fNames)
+%     disp(S.(fNames{n}))
+% end
+% 
+% p.Color(4) = 0.25
+
 %% check ss in logs
-exp(-4.16524)*oo_.irfs.kT2_e1(2) + exp(-2.42005)*oo_.irfs.kT1_e1(2)
-exp(-2.25911)*oo_.irfs.kT_e1(1)
+% exp(-4.16524)*oo_.irfs.kT2_e1(2) + exp(-2.42005)*oo_.irfs.kT1_e1(2)
+% exp(-2.25911)*oo_.irfs.kT_e1(1)
 
