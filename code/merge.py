@@ -7,6 +7,7 @@ Created on Fri Mar 27 18:21:35 2020
 """
 
 import pandas as pd
+import matplotlib.pyplot as plt
 import wrds
 
 ces = pd.read_csv('http://www.nber.org/nberces/nberces5811/sic5811.csv') # sic version
@@ -58,3 +59,21 @@ df.sic = df.sic.astype(int)
 data = pd.merge(df, ces, left_on=['sic', 'fyear'], right_on=['sic', 'year'])
 
 data.to_csv('../data/capital.csv', index=False)
+
+
+data = pd.read_csv('FirmSpecificIntangibleCapital/data/capital.csv')
+
+data = data[data['fyear'] > 1975]
+
+data['share1'] = data['k_int']/ (data['k_int'] + data['ppegt'])
+data['share2'] = data['k_int'] / data['at']
+
+data['fyear'] = pd.to_datetime(data['fyear'], format='%Y').dt.year
+plt.plot(data[(data.sic == 2011)]['fyear'], data[(data.sic == 2011)][['share1', 'share2']])
+plt.legend(['Share of total capitals', 'Share of total assets'])
+plt.title('SIC: 2011')
+plt.show()
+
+data2 = data.groupby('sic', as_index=False).mean()
+data2 = data2[['sic','share1','share2']]
+print(data2.to_latex())
