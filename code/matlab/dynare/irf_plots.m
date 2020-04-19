@@ -1,7 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Collect IRFs values and plot them from DYNARE outputs. %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Generate IRFs from DYNARE
+clc; clear;
+
+%% Generate IRFs from DYNARE (linearization)
 
 dynare intCapitalv3;            % CES
 irfs_ces = oo_.irfs;
@@ -15,7 +17,13 @@ irfs_tan = oo_.irfs;
 dynare intangibleCapitalOnly;
 irfs_int = oo_.irfs;
 
-%% Generate IRFs from DYNARE exp version
+
+l2 = {irfs_ces, irfs_tan, irfs_int};
+l3 = {irfs_ces, irfs_tan, irfs_int, irfs_cd};
+
+close all;
+
+%% Generate IRFs from DYNARE (log-linearization)
 
 dynare intCapital_exp_v3;
 irfs_ces_exp = oo_.irfs;
@@ -26,22 +34,19 @@ irfs_tan_exp = oo_.irfs;
 dynare intangibleCapitalOnly_exp;
 irfs_int_exp = oo_.irfs;
 
+l1 = {irfs_ces_exp, irfs_tan_exp, irfs_int_exp};
+
 close all;
 
-%%
-l1 = {irfs_ces_exp, irfs_tan_exp, irfs_int_exp};
-%l2 = {irfs_cd, irfs_ces, irfs_tan, irfs_int};
-l2 = {irfs_ces, irfs_tan, irfs_int};
-
-%% exp
+%% log-level
 close all
 fig = figure;
 subplot(2,2,1);
-plot(-9:50, [zeros(1, 10), l1{2}.z1_e1], '-bo', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l1{2}.z1_e1], '-bo', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l1{3}.z1_e1], '-go', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l1{3}.z1_e1], '-go', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l1{1}.z1_e1], '-ro', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l1{1}.z1_e1], '-ro', 'LineWidth', 1);
 xlim([-10 50]);
 ylim([min([zeros(1, 60), l1{1}.z1_e1, l1{2}.z1_e1, l1{3}.z1_e1]) max([l1{1}.z1_e1, l1{2}.z1_e1, l1{3}.z1_e1])])
 %xlabel('time');
@@ -63,11 +68,11 @@ legend([p1, p2, p3], {'\theta_1=0.5', '\theta_1=1', '\theta_1=0'}, 'fontweight',
 legend('boxoff')
 
 subplot(2,2,3);
-plot(-9:50, [zeros(1, 10), l1{1}.x_e1], '-ro', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l1{1}.x_e1], '-ro', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l1{2}.x_e1], '-bo', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l1{2}.x_e1], '-bo', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l1{3}.x_e1], '-go', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l1{3}.x_e1], '-go', 'LineWidth', 1);
 xlim([-2 10]);
 ylim([min([zeros(1, 60), l1{1}.x_e1, l1{2}.x_e1, l1{3}.x_e1, -0.1]) max([l1{1}.x_e1, l1{2}.x_e1, l1{3}.x_e1])]);
 %xlabel('time');
@@ -92,19 +97,19 @@ han = axes(fig,'visible','off');
 %han.Title.Visible='on';
 han.XLabel.Visible='on';
 han.YLabel.Visible='on';
-ylabel(han,'Deviation from S.S','fontweight', 'bold','FontSize', 14);
+ylabel(han,'% Deviation','fontweight', 'bold','FontSize', 14);
 xlabel(han,'Time','fontweight', 'bold','FontSize', 14);
 %title(han,'yourTitle');
 
-%%
+%% level excl. c-d
 close all
 fig = figure;
 subplot(2,2,1);
-plot(-9:50, [zeros(1, 10), l2{2}.z1_e1], '-bo', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l2{2}.z1_e1], '-bo', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l2{3}.z1_e1], '-go', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l2{3}.z1_e1], '-go', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l2{1}.z1_e1], '-ro', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l2{1}.z1_e1], '-ro', 'LineWidth', 1);
 xlim([-10 50]);
 ylim([min([zeros(1, 60), l2{1}.z1_e1, l2{2}.z1_e1, l2{3}.z1_e1]) max([l2{1}.z1_e1, l2{2}.z1_e1, l2{3}.z1_e1])])
 %xlabel('time');
@@ -122,15 +127,15 @@ ylim([min([zeros(1, 60), l2{1}.y1_e1, l2{2}.y1_e1, l2{3}.y1_e1]) max([l2{1}.y1_e
 %xlabel('time');
 title('Output', 'fontweight', 'bold', 'FontSize', 14);
 grid on
-legend([p1, p2, p3], {'\theta_1=0.5', '\theta_1=1', '\theta_1=0'}, 'FontSize', 14, 'TextColor', 'black')
+legend([p1, p2, p3], {'\theta_1=0.5', '\theta_1=1', '\theta_1=0'}, 'fontweight', 'bold', 'FontSize', 14, 'TextColor', 'black')
 legend('boxoff')
 
 subplot(2,2,3);
-plot(-9:50, [zeros(1, 10), l2{1}.x_e1], '-ro', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l2{1}.x_e1], '-ro', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l2{2}.x_e1], '-bo', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l2{2}.x_e1], '-bo', 'LineWidth', 1);
 hold on
-plot(-9:50, [zeros(1, 10), l2{3}.x_e1], '-go', 'LineWidth', 1.5);
+plot(-9:50, [zeros(1, 10), l2{3}.x_e1], '-go', 'LineWidth', 1);
 xlim([-2 10]);
 ylim([min([zeros(1, 60), l2{1}.x_e1, l2{2}.x_e1, l2{3}.x_e1, -0.1]) max([l2{1}.x_e1, l2{2}.x_e1, l2{3}.x_e1])]);
 %xlabel('time');
@@ -154,9 +159,80 @@ grid on
 han = axes(fig,'visible','off'); 
 %han.Title.Visible='on';
 han.XLabel.Visible='on';
-%han.YLabel.Visible='on';
-%ylabel(han,'yourYLabel');
-xlabel(han,'Time');
+han.YLabel.Visible='on';
+ylabel(han,'Deviation','fontweight', 'bold','FontSize', 14);
+xlabel(han,'Time','fontweight', 'bold','FontSize', 14);
+%title(han,'yourTitle');
+
+%% level incl. c-d
+close all
+fig = figure;
+subplot(2,2,1);
+plot(-9:50, [zeros(1, 10), l3{2}.z1_e1], '-bo', 'LineWidth', 1.5);
+hold on
+plot(-9:50, [zeros(1, 10), l3{3}.z1_e1], '-go', 'LineWidth', 1.5);
+hold on
+plot(-9:50, [zeros(1, 10), l3{4}.z1_e1], '-kx', 'LineWidth', 1.5);
+hold on
+plot(-9:50, [zeros(1, 10), l3{1}.z1_e1], '-ro', 'LineWidth', 1.5);
+xlim([-10 50]);
+ylim([min([zeros(1, 60), l3{1}.z1_e1, l3{2}.z1_e1, l3{3}.z1_e1]) max([l3{1}.z1_e1, l3{2}.z1_e1, l3{3}.z1_e1])])
+%xlabel('time');
+title('Productivity Shock', 'fontweight', 'bold', 'FontSize', 14);
+grid on
+
+subplot(2,2,2);
+p1 = plot(-9:50, [zeros(1, 10), l3{1}.y1_e1], '-ro', 'LineWidth', 1);
+hold on
+p2 = plot(-9:50, [zeros(1, 10), l3{2}.y1_e1], '-bo', 'LineWidth', 1);
+hold on
+p3 = plot(-9:50, [zeros(1, 10), l3{3}.y1_e1], '-go', 'LineWidth', 1);
+hold on
+p4 = plot(-9:50, [zeros(1, 10), l3{4}.y1_e1], '-kx', 'LineWidth', 1);
+xlim([-10 50]);
+ylim([min([zeros(1, 60), l3{1}.y1_e1, l3{2}.y1_e1, l3{3}.y1_e1, l3{4}.y1_e1]) max([l3{1}.y1_e1, l3{2}.y1_e1, l3{3}.y1_e1, l3{4}.y1_e1])]);
+%xlabel('time');
+title('Output', 'fontweight', 'bold', 'FontSize', 14);
+grid on
+legend([p1, p2, p3, p4], {'\theta_1=0.5', '\theta_1=1', '\theta_1=0', 'CD'}, 'FontSize', 14, 'TextColor', 'black')
+legend('boxoff')
+
+subplot(2,2,3);
+plot(-9:50, [zeros(1, 10), l3{1}.x_e1], '-ro', 'LineWidth', 1.5);
+hold on
+plot(-9:50, [zeros(1, 10), l3{2}.x_e1], '-bo', 'LineWidth', 1.5);
+hold on
+plot(-9:50, [zeros(1, 10), l3{3}.x_e1], '-go', 'LineWidth', 1.5);
+hold on
+plot(-9:50, [zeros(1, 10), l3{4}.x_e1], '-kx', 'LineWidth', 1.5);
+xlim([-2 10]);
+ylim([min([zeros(1, 60), l3{1}.x_e1, l3{2}.x_e1, l3{3}.x_e1, l3{4}.x_e1, -0.1]) max([l3{1}.x_e1, l3{2}.x_e1, l3{3}.x_e1, l3{4}.x_e1])]);
+%xlabel('time');
+title('Tangible Investment', 'fontweight', 'bold', 'FontSize', 14);
+grid on
+
+subplot(2,2,4);
+plot(-9:50, [zeros(1, 10), l3{1}.y2_e1], '-ro', 'LineWidth', 1);
+hold on
+%plot(-9:50, [zeros(1, 10), l3{2}.y2_e1], '-bo', 'LineWidth', 1);
+%hold on
+plot(-9:50, zeros(1, 60), '-bo', 'LineWidth', 1.5);
+hold on
+plot(-9:50, [zeros(1, 10), l3{3}.y2_e1], '-go', 'LineWidth', 1);
+hold on
+plot(-9:50, [zeros(1, 10), l3{4}.y2_e1], '-kx', 'LineWidth', 1);
+xlim([-10 50]);
+ylim([min([zeros(1, 60), l3{1}.y2_e1, zeros(1, 60), l3{3}.y2_e1, l3{4}.y2_e1]) max([l3{1}.y2_e1, zeros(1, 60), l3{3}.y2_e1, l3{4}.y2_e1])]);
+%xlabel('time');
+title('Intangible Investment', 'fontweight', 'bold', 'FontSize', 14);
+grid on
+
+han = axes(fig,'visible','off'); 
+%han.Title.Visible='on';
+han.XLabel.Visible='on';
+han.YLabel.Visible='on';
+ylabel(han,'Deviation','fontweight', 'bold','FontSize', 14);
+xlabel(han,'Time','fontweight', 'bold','FontSize', 14);
 %title(han,'yourTitle');
 
 %%

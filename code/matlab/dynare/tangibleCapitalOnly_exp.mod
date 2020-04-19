@@ -24,6 +24,9 @@ kT
 x
 //b
 
+// Percentage deviations from steady state
+y1_obs x_obs
+
 // Productivity shocks
 z1;
 
@@ -139,6 +142,10 @@ model;
     z1     = rho1 * z1(-1) + e1;
     //z2     = rho2 * z2(-1) + e2;
 
+    // Percentage deviations from steady state
+    y1_obs = y1 - steady_state(y1);
+    x_obs = x - steady_state(x);
+
 end;
 
 %----------------------------------------------------------------
@@ -175,5 +182,5 @@ var e1 = sigma1^2;
 end;
 
 steady(maxit = 1000000);
-
+check;
 stoch_simul(irf = 50, order = 1);
