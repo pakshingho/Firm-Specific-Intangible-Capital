@@ -84,6 +84,30 @@ ipdef <- fredr(
         observation_start = as.Date("1947-01-01"),
         observation_end = as.Date("2020-01-01")
 )
+# Current-Cost Net Stock of Fixed Assets and Consumer Durable Goods (K1WTOTL1ES000)
+cap <- fredr(
+        series_id = "K1WTOTL1ES000",
+        observation_start = as.Date("1947-01-01"),
+        observation_end = as.Date("2020-01-01")
+)
+gdpa <- fredr(
+        series_id = "GDPA",
+        observation_start = as.Date("1947-01-01"),
+        observation_end = as.Date("2020-01-01")
+)
+# Gross Domestic Product: Implicit Price Deflator
+gdpadef <- fredr(
+        series_id = "A191RD3A086NBEA",
+        observation_start = as.Date("1947-01-01"),
+        observation_end = as.Date("2020-01-01")
+)
+
+# Gross private domestic investment (implicit price deflator)
+invadef <- fredr(
+        series_id = "A006RD3A086NBEA",
+        observation_start = as.Date("1947-01-01"),
+        observation_end = as.Date("2020-01-01")
+)
 
 # some level plots
 # plot(x=gdp$date, y=(gdp$value), col=1)
@@ -101,9 +125,15 @@ invdef<-ts(invdef$value, start=c(1947, 1), frequency = 4)
 ip<-ts(ip$value, start=c(1947, 1), frequency = 4)
 ipdef<-ts(ipdef$value, start=c(1947, 1), frequency = 4)
 
+cap<-ts(cap$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
+gdpa<-ts(gdpa$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
+invadef<-ts(invadef$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
+gdpadef<-ts(gdpadef$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
+
 #construct tangible investment deflator and nominal tangible investment
-tinvdef <- invdef - ip / (inv - ip) * (ipdef - invdef)
 tinv <- inv - ip
+tinvdef <- invdef - (ip/ipdef) / (inv/invdef - ip/ipdef) * (ipdef - invdef)
+#as.matrix(cbind((inv/invdef - ip/ipdef)*tinvdef, tinv)) # tangible investment deflator verification
 
 # Some interesting findings:
 # 1. declining both tangible & intangible investment prices
@@ -137,16 +167,72 @@ ts.plot(ip/inv*(ipdef/invdef-1))
 gdp<-log(gdp/gdpdef)
 inv<-log(inv/invdef)
 ip<-log(ip/ipdef)
+tinv<-log(inv/invdef - ip/ipdef)
 
+gdpa<-log(gdpa/gdpadef)
+cap <- log(cap/invadef)
 
 # Apply HP-filter 
 gdp.hp<-hpfilter(gdp)
 inv.hp<-hpfilter(inv)
 ip.hp<-hpfilter(ip)
+tinv.hp<-hpfilter(tinv)
+
+gdpa.hp<-hpfilter(gdpa)
+cap.hp<-hpfilter(cap)
 
 output <- gdp.hp$cycle
-inv_tan <- inv.hp$cycle
+inv_both <- inv.hp$cycle
+inv_tan <- tinv.hp$cycle
 inv_int <- ip.hp$cycle
 
-data.var <- as.matrix(cbind(ipdef, invdef, tinvdef))
-ts.plot(data.var, col=c(1,2,3))
+outputa <- gdpa.hp$cycle
+capital <- cap.hp$cycle
+
+
+data.var <- as.matrix(cbind(output, inv_int, inv_tan))
+results <- VAR(data.var, p=8)
+summary(results)
+
+impresp <- irf(results, n.ahead=25, ci=0.95)
+plot(impresp)
+
+plot(irf(results, impulse='output', response='output', n.ahead=25, ci=0.95, cumulative=F))
+
+
+# log diff
+output <- diff(gdp)
+inv_both <- diff(inv)
+inv_tan <- diff(tinv)
+inv_int <- diff(ip)
+
+data.var <- as.matrix(cbind(output, inv_int, inv_tan)) # investment is a decision variable, respond to all shocks
+results <- VAR(data.var, p=8)
+summary(results)
+
+impresp <- irf(results, n.ahead=25, ci=0.95, cumulative=T)
+plot(impresp)
+
+plot(irf(results, impulse='output', response='output', n.ahead=25, ci=0.95, cumulative=T))
+
+# capital
+data.var <- as.matrix(cbind(capital, outputa))
+results <- VAR(data.var, p=8)
+summary(results)
+
+impresp <- irf(results, n.ahead=25, ci=0.95)
+plot(impresp)
+
+plot(irf(results, impulse='outputa', response='outputa', n.ahead=25, ci=0.95, cumulative=F))
+
+# capital fd
+outputa <- diff(gdpa)
+capital <- diff(cap)
+data.var <- as.matrix(cbind(outputa, capital))
+results <- VAR(data.var, p=8)
+summary(results)
+
+impresp <- irf(results, n.ahead=25, ci=0.95)
+plot(impresp)
+
+plot(irf(results, impulse='outputa', response='outputa', n.ahead=25, ci=0.95, cumulative=F))
