@@ -7,6 +7,7 @@ Created on Fri Mar 27 18:21:35 2020
 """
 
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import wrds
 
@@ -34,7 +35,7 @@ totalq = conn.raw_sql("""
                    """)
 
 funda = conn.raw_sql("""
-                     select gvkey, fyear, at, sale, ppegt
+                     select gvkey, fyear, at, sale, ppegt, xrd, xsga, capx
                      from
                      comp.funda
                      where
@@ -50,6 +51,9 @@ funda = conn.raw_sql("""
                      """)
 conn.close()
 
+# construct firm level intangible investment
+# funda['invest_int'] = funda['xrd'] + 0.3 * funda['xsga']
+
 df = pd.merge(totalq, names, on='gvkey')
 df = pd.merge(df, funda, on=['gvkey', 'fyear'])
 df.drop(columns=['q_tot', 'conm', 'tic', 'cusip', 'cik', 'gsubind', 'gind', 'year1', 'year2'], inplace=True)
@@ -58,7 +62,10 @@ df = df.groupby(['sic', 'fyear'], as_index=False).sum()
 df.sic = df.sic.astype(int)
 data = pd.merge(df, ces, left_on=['sic', 'fyear'], right_on=['sic', 'year'])
 
-data.to_csv('../data/capital.csv', index=False)
+# Construct sic level intangible investment
+data['inv_int'] = data['xrd'] + 0.3 * data['xsga']
+
+data.to_csv('FirmSpecificIntangibleCapital/data/capital.csv', index=False)
 
 
 data = pd.read_csv('FirmSpecificIntangibleCapital/data/capital.csv')
@@ -68,6 +75,7 @@ data = data[data['fyear'] > 1975]
 data['share1'] = data['k_int']/ (data['k_int'] + data['ppegt'])
 data['share2'] = data['k_int'] / data['at']
 
+# plot an example SIC industry share
 data['fyear'] = pd.to_datetime(data['fyear'], format='%Y').dt.year
 plt.plot(data[(data.sic == 2011)]['fyear'], data[(data.sic == 2011)][['share1', 'share2']])
 plt.legend(['Share of total capitals', 'Share of total assets'])
@@ -76,4 +84,52 @@ plt.show()
 
 data2 = data.groupby('sic', as_index=False).mean()
 data2 = data2[['sic','share1','share2']]
-print(data2.to_latex())
+
+# bins by share1
+data2.sort_values('share1', inplace=True)
+data2.reset_index(drop=True, inplace=True)
+
+# Visualize relationship between share measures
+plt.scatter(data2.share1, data2.share2, marker='x')
+plt.scatter(range(len(data2.share1)), data2.share1, marker='.', alpha=0.8)
+plt.scatter(range(len(data2.share2)), data2.share2, marker='x', alpha=0.8)
+plt.show()
+
+# bins by share1
+L_s1 = data2.loc[0:np.floor(len(data2)/3), ['sic', 'share1']]
+M_s1 = data2.loc[np.ceil(len(data2)/3): np.floor(len(data2)*2/3), ['sic', 'share1']]
+H_s1 = data2.loc[np.ceil(len(data2)*2/3):len(data2), ['sic', 'share1']]
+
+# bins by share2
+data2.sort_values('share2', inplace=True)
+data2.reset_index(drop=True, inplace=True)
+L_s2 = data2.loc[0:np.floor(len(data2)/3), ['sic', 'share2']]
+M_s2 = data2.loc[np.ceil(len(data2)/3): np.floor(len(data2)*2/3), ['sic', 'share2']]
+H_s2 = data2.loc[np.ceil(len(data2)*2/3):len(data2), ['sic', 'share2']]
+
+# collect data after sorting in bins
+data_L_s1 = data[data['sic'].isin(L_s1['sic'])]
+data_M_s1 = data[data['sic'].isin(M_s1['sic'])]
+data_H_s1 = data[data['sic'].isin(H_s1['sic'])]
+
+data['share_type'] = ''
+data.loc[data['sic'].isin(L_s1['sic']), 'share1_type'] = 'L'
+data.loc[data['sic'].isin(M_s1['sic']), 'share1_type'] = 'M'
+data.loc[data['sic'].isin(H_s1['sic']), 'share1_type'] = 'H'
+
+data_L_s2 = data[data['sic'].isin(L_s2['sic'])]
+data_M_s2 = data[data['sic'].isin(M_s2['sic'])]
+data_H_s2 = data[data['sic'].isin(H_s2['sic'])]
+
+data.loc[data['sic'].isin(L_s2['sic']), 'share2_type'] = 'L'
+data.loc[data['sic'].isin(M_s2['sic']), 'share2_type'] = 'M'
+data.loc[data['sic'].isin(H_s2['sic']), 'share2_type'] = 'H'
+
+# save sorted data
+data_L_s1.to_csv('FirmSpecificIntangibleCapital/data/data_L_s1.csv', index=False)
+data_M_s1.to_csv('FirmSpecificIntangibleCapital/data/data_M_s1.csv', index=False)
+data_H_s1.to_csv('FirmSpecificIntangibleCapital/data/data_H_s1.csv', index=False)
+data_L_s2.to_csv('FirmSpecificIntangibleCapital/data/data_L_s2.csv', index=False)
+data_M_s2.to_csv('FirmSpecificIntangibleCapital/data/data_M_s2.csv', index=False)
+data_H_s2.to_csv('FirmSpecificIntangibleCapital/data/data_H_s2.csv', index=False)
+data.to_csv('FirmSpecificIntangibleCapital/data/capital.csv', index=False)
