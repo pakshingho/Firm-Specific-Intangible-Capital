@@ -9,6 +9,7 @@ Created on Fri Mar 27 18:21:35 2020
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas_datareader.data as web
 import wrds
 
 ces = pd.read_csv('http://www.nber.org/nberces/nberces5811/sic5811.csv') # sic version
@@ -51,6 +52,23 @@ funda = conn.raw_sql("""
                      """)
 conn.close()
 
+start = '1949-01-01'
+end = '2021-01-01'
+# Gross Private Domestic Investment: Fixed Investment: Nonresidential: Intellectual Property Products: Implicit Price Deflator (Y001RD3A086NBEA)
+intdef = web.DataReader('Y001RD3A086NBEA', 'fred', start=start, end=end)
+intdef['fyear'] = intdef.index.year
+intdef.rename(columns={"Y001RD3A086NBEA": 'intdef'}, inplace=True)
+
+# Gross private domestic investment: Fixed investment: Nonresidential (implicit price deflator) (A008RD3A086NBEA)
+tandef = web.DataReader('A008RD3A086NBEA', 'fred', start=start, end=end)
+tandef['fyear'] = intdef.index.year
+tandef.rename(columns={"A008RD3A086NBEA": 'tandef'}, inplace=True)
+
+deflator = pd.merge(tandef, intdef)
+# make 1987 as base 100
+deflator['tandef'] = deflator['tandef'] / deflator.loc[deflator['fyear'] == 1987, 'tandef'].values
+deflator['intdef'] = deflator['intdef'] / deflator.loc[deflator['fyear'] == 1987, 'intdef'].values
+
 # construct firm level intangible investment
 # funda['invest_int'] = funda['xrd'] + 0.3 * funda['xsga']
 
@@ -62,6 +80,8 @@ df = df.groupby(['sic', 'fyear'], as_index=False).sum()
 df.sic = df.sic.astype(int)
 data = pd.merge(df, ces, left_on=['sic', 'fyear'], right_on=['sic', 'year'])
 
+data = pd.merge(data, deflator, on='fyear')
+
 # Construct sic level intangible investment
 data['inv_int'] = data['xrd'] + 0.3 * data['xsga']
 
@@ -72,7 +92,7 @@ data = pd.read_csv('FirmSpecificIntangibleCapital/data/capital.csv')
 
 data = data[data['fyear'] > 1975]
 
-data['share1'] = data['k_int']/ (data['k_int'] + data['ppegt'])
+data['share1'] = data['k_int'] / (data['k_int'] + data['ppegt'])
 data['share2'] = data['k_int'] / data['at']
 
 # plot an example SIC industry share
@@ -83,7 +103,7 @@ plt.title('SIC: 2011')
 plt.show()
 
 data2 = data.groupby('sic', as_index=False).mean()
-data2 = data2[['sic','share1','share2']]
+data2 = data2[['sic', 'share1', 'share2']]
 
 # bins by share1
 data2.sort_values('share1', inplace=True)
