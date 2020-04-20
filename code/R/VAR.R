@@ -120,16 +120,20 @@ invadef <- fredr(
 # Convert raw data into ts-objects
 gdp<-ts(gdp$value, start=c(1947, 1), frequency = 4)
 gdpdef<-ts(gdpdef$value, start=c(1947, 1), frequency = 4)
+gdpdef<-gdpdef/100
 inv<-ts(inv$value, start=c(1947, 1), frequency = 4)
 invdef<-ts(invdef$value, start=c(1947, 1), frequency = 4)
+invdef <- invdef/100
 ip<-ts(ip$value, start=c(1947, 1), frequency = 4)
 ipdef<-ts(ipdef$value, start=c(1947, 1), frequency = 4)
+ipdef<-ipdef/100
 
 cap<-ts(cap$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
 gdpa<-ts(gdpa$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
 invadef<-ts(invadef$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
+invadef<- invadef/100
 gdpadef<-ts(gdpadef$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
-
+gdpadef<-gdpadef/100
 #construct tangible investment deflator and nominal tangible investment
 tinv <- inv - ip
 tinvdef <- invdef - (ip/ipdef) / (inv/invdef - ip/ipdef) * (ipdef - invdef)
