@@ -60,7 +60,7 @@ a c d;
 
 // Technology 1
 lambda1 = 1.1;
-theta1  = 0.5;
+theta1  = 0.99;
 alpha1  = 0.3;
 gamma1  = 0.6;
 deltaT  = 0.1;
@@ -152,14 +152,14 @@ end;
 initval;
     z1 = 0;
     z2 = 0;
-    l1  = 0.0443293;
-    l2  = 0.00594081;
+    l1  = 0.337716;
+    l2  = 0.000587777;
   
-    kT = 0.104443;
-    kT1 = 0.088917;
+    kT = 1.34365;
+    kT1 = 1.34209;
     kT2 = kT - kT1;
-    kI = 0.104617;
-    kI1 = 0.0833954;
+    kI = 0.0140064;
+    kI1 = 0.0112004;
     kI2 = kI - kI1;
 
     x   = kT * deltaT;
@@ -169,7 +169,7 @@ initval;
     y1  = k1 ^ alpha1 * (exp(z1) * l1) ^ gamma1;
     k2  = ( theta2 * kT2 ^ ((lambda2 - 1) / lambda2) + (1 - theta2) * kI2 ^ ((lambda2 - 1) / lambda2) ) ^ (lambda2 / (lambda2 - 1));
 
-    q  = 0.757152;
+    q  = 0.559533;
     b  =  -0.05;
 end;
 

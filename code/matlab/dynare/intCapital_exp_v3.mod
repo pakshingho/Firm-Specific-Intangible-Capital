@@ -179,6 +179,7 @@ var e2 = sigma2^2;
 end;
 
 steady(maxit = 1000000);
-check;
+//check;
 
-stoch_simul(irf = 50, order = 1);
+//stoch_simul(irf = 50, order = 1);
+stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments, nograph, nodisplay);
