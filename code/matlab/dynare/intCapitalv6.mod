@@ -92,38 +92,38 @@ w       = 1;
 model;
     // 1. Production function 1
     y1     = k1 ^ alpha1 * (exp(z1) * n1) ^ gamma1;
-    k1 = ( theta1 * ( sk * k ) ^ ((lambda1 - 1) / lambda1) + (1 - theta1) * ( sh * h ) ^ ((lambda1 - 1) / lambda1) ) ^ (lambda1 / (lambda1 - 1));
+    k1 = ( theta1 * ( sk * k(-1) ) ^ ((lambda1 - 1) / lambda1) + (1 - theta1) * ( sh * h(-1) ) ^ ((lambda1 - 1) / lambda1) ) ^ (lambda1 / (lambda1 - 1));
     
     // 2. Production function 2
     y2     = k2 ^ alpha2 * (exp(z2) * n2) ^ gamma2;
-    k2 = ( theta2 * ( (1 - sk ) * k ) ^ ((lambda2 - 1) / lambda2) + (1 - theta2) * ( (1 - sh ) * h ) ^ ((lambda2 - 1) / lambda2) ) ^ (lambda2 / (lambda2 - 1));
+    k2 = ( theta2 * ( (1 - sk ) * k(-1) ) ^ ((lambda2 - 1) / lambda2) + (1 - theta2) * ( (1 - sh ) * h(-1) ) ^ ((lambda2 - 1) / lambda2) ) ^ (lambda2 / (lambda2 - 1));
     
     // 3. capital accumulation
     k     = i + (1 - deltaK) * k(-1);
     h     = y2 + (1 - deltaH) * h(-1);
 
     // 4. First order equation for sk
-    alpha1 * theta1 * y1 / k1 * (k1 / ( sk * k ) ) ^ (1 / lambda1) = 
-    q * alpha2 * theta2 * y2 / k2 * (k2 / ( ( 1 - sk ) * k ) ) ^ (1 / lambda2);
+    alpha1 * theta1 * y1 / k1 * (k1 / ( sk * k(-1) ) ) ^ (1 / lambda1) = 
+    q * alpha2 * theta2 * y2 / k2 * (k2 / ( ( 1 - sk ) * k(-1) ) ) ^ (1 / lambda2);
 
     // 5. First order equation for sh
-    alpha1 * (1 - theta1) * y1 / k1 * ( k1 / ( sh * h ) ) ^ (1 / lambda1) = 
-    q * alpha2 * (1 - theta2) * y2 / k2 * ( k2 / ( ( 1 - sh ) * h ) ) ^ (1 / lambda2);    
+    alpha1 * (1 - theta1) * y1 / k1 * ( k1 / ( sh * h(-1) ) ) ^ (1 / lambda1) = 
+    q * alpha2 * (1 - theta2) * y2 / k2 * ( k2 / ( ( 1 - sh ) * h(-1) ) ) ^ (1 / lambda2);    
 
     // 6. First order equation for k
-    alpha1 * theta1 * y1(+1) / k1(+1) * ( k1(+1) / ( sk(+1) * k(+1) ) ) ^ (1 / lambda1) * sk(+1)
-    + q(+1) * alpha2 * theta2 * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sk(+1) ) * k(+1) ) ) ^ (1 / lambda2) * ( 1 - sk(+1) )
+    alpha1 * theta1 * y1(+1) / k1(+1) * ( k1(+1) / ( sk(+1) * k ) ) ^ (1 / lambda1) * sk(+1)
+    + q(+1) * alpha2 * theta2 * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sk(+1) ) * k ) ) ^ (1 / lambda2) * ( 1 - sk(+1) )
     = ri + deltaK;
 
-    //q(+1) * alpha2 * theta2 * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sk(+1) ) * k(+1) ) ) ^ (1 / lambda2)
+    //q(+1) * alpha2 * theta2 * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sk(+1) ) * k ) ) ^ (1 / lambda2)
     //= ri + deltaK;
 
     // 7. First order equation for h
-    alpha1 * (1 - theta1) * y1(+1) / k1(+1) * ( k1(+1) / ( sh(+1) * h(+1) ) ) ^ (1 / lambda1) * sh(+1)
-    + q(+1) * ( ( 1 - deltaH ) + alpha2 * (1 - theta2) * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sh(+1) ) * h(+1) ) ) ^ (1 / lambda2) * ( 1 - sh(+1) ) )
+    alpha1 * (1 - theta1) * y1(+1) / k1(+1) * ( k1(+1) / ( sh(+1) * h ) ) ^ (1 / lambda1) * sh(+1)
+    + q(+1) * ( ( 1 - deltaH ) + alpha2 * (1 - theta2) * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sh(+1) ) * h ) ) ^ (1 / lambda2) * ( 1 - sh(+1) ) )
     = (1 + ri) * q;
 
-    //q(+1) * ( ( 1 - deltaH ) + alpha2 * (1 - theta2) * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sh(+1) ) * h(+1) ) ) ^ (1 / lambda2) )
+    //q(+1) * ( ( 1 - deltaH ) + alpha2 * (1 - theta2) * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sh(+1) ) * h ) ) ^ (1 / lambda2) )
     //= (1 + ri) * q;
 
     // 8. First order equation for n1
@@ -173,7 +173,7 @@ var e2 = sigma2^2;
 end;
 
 steady(maxit = 1000000);
-check;
+//check;
 
-stoch_simul(irf = 50, order = 1);
-//stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments, nograph, nodisplay);
+//stoch_simul(irf = 50, order = 1);
+stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments, nograph, nodisplay);
