@@ -14,6 +14,11 @@ from datetime import datetime
 import statsmodels.api as sm
 from statsmodels.tsa.api import VAR
 
+
+tfp=pd.read_csv('Solow_residual_Quarterly.txt',sep='\t')
+tfp.rename(columns={'observation_date': 'DATE', 'GDPC1_20180915': 'TFP'}, inplace=True)
+tfp.set_index('DATE', inplace=True)
+
 # Decide time period
 start = '1947-01-01'
 end = now = datetime.now().date()
@@ -45,6 +50,31 @@ invdef.rename(columns={'A006RD3Q086SBEA': 'P_Inv'}, inplace=True)
 ipdef = web.DataReader('Y001RD3Q086SBEA', 'fred', start=start, end=end)
 ipdef.rename(columns={'Y001RD3Q086SBEA': 'P_int'}, inplace=True)
 
+# Business Sector: Hours of All Persons (HOABS)
+hours = web.DataReader('HOABS', 'fred', start=start, end=end)
+hours.rename(columns={'HOABS': 'hours'}, inplace=True)
+
+# Nonfarm Business Sector: Compensation Per Hour (COMPNFB)
+realWage = web.DataReader('COMPNFB', 'fred', start=start, end=end)
+realWage.rename(columns={'COMPNFB': 'realWage'}, inplace=True)
+
+# Real Personal Consumption Expenditures (PCECC96)
+realCons = web.DataReader('PCECC96', 'fred', start=start, end=end)
+realCons.rename(columns={'PCECC96': 'realCons'}, inplace=True)
+
+# Effective Federal Funds Rate (FF)
+FF = web.DataReader('FF', 'fred', start=start, end=end)
+FF.rename(columns={'FF': 'FF'}, inplace=True)
+FF = FF.resample('Q', convention='start', loffset='d').mean()
+
+# Corporate Profits After Tax (without IVA and CCAdj) (CP)
+CP = web.DataReader('CP', 'fred', start=start, end=end)
+CP.rename(columns={'CP': 'CP'}, inplace=True)
+
+# M2 Money Stock (M2SL)
+M2 = web.DataReader('M2SL', 'fred', start=start, end=end)
+M2.rename(columns={'M2SL': 'M2'}, inplace=True)
+M2 = M2.resample('Q', convention='start', loffset='d').mean()
 
 """
 Clean and transform data series
@@ -55,8 +85,15 @@ df = pd.merge(df, gdp, left_index=True, right_index=True)
 df = pd.merge(df, invdef, left_index=True, right_index=True)
 df = pd.merge(df, ipdef, left_index=True, right_index=True)
 df = pd.merge(df, gdpdef, left_index=True, right_index=True)
+df = pd.merge(df, hours, left_index=True, right_index=True)
+df = pd.merge(df, realWage, left_index=True, right_index=True)
+df = pd.merge(df, realCons, left_index=True, right_index=True)
+df = pd.merge(df, FF, left_index=True, right_index=True)
+df = pd.merge(df, CP, left_index=True, right_index=True)
+df = pd.merge(df, M2, left_index=True, right_index=True)
+df = pd.merge(df, tfp, left_index=True, right_index=True)
 
-# Construct tangible investment deflator and nominal tangible investment:
+# --- Construct tangible investment deflator and nominal tangible investment:
 # Nominal tangible investment
 df['I_tan'] = df['Inv'] - df['I_int']
 
@@ -69,9 +106,170 @@ df['Inv_real'] = df['Inv'] / df['P_Inv']
 # Tangible investment deflator
 df['P_tan'] = df['P_Inv'] - df['I_int_real'] / (df['Inv_real'] - df['I_int_real']) * (df['P_int'] - df['P_Inv'])
 
-# Construct real variables:
+# --- Construct real variables:
 # Real tangible investment
 df['I_tan_real'] = df['I_tan'] / df['P_tan']
 
 # Real output
 df['Output_real'] = df['gdp'] / df['gdpdef']
+
+# Real profit
+df['Profit_real'] = df['CP'] / df['gdpdef']
+
+# Labor productivity
+df['Prod'] = df['Output_real'] / df['hours']
+
+# --- Consutrct log real variables
+df['logOutput'] = np.log(df['Output_real'])
+df['logCons'] = np.log(df['realCons'])
+df['logPrice'] = np.log(df['gdpdef']).diff()
+df['logI_tan'] = np.log(df['I_tan_real'])
+df['logI_int'] = np.log(df['I_int_real'])
+df['logWage'] = np.log(df['realWage'])
+df['logProd'] = np.log(df['Prod'])
+df['logFF'] = np.log(df['FF'])
+df['logProfit'] = np.log(df['Profit_real'])
+df['logM2growth'] = np.log(df['M2']).diff()
+df['logTFP'] = np.log(df['TFP'])
+
+# --- Consutrct log-differenced real variables
+df['logDiffOutput'] = df['logOutput'].diff()
+df['logDiffI_tan'] = df['logI_tan'].diff()
+df['logDiffI_int'] = df['logI_int'].diff()
+
+# --- Apply HP-filter
+df.dropna(inplace=True)
+
+for var in ['logOutput', 'logCons', 'logPrice', 'logI_tan', 'logI_int',
+            'logWage', 'logProd', 'logFF', 'logProfit', 'logM2growth',
+            'logTFP']:
+    cycle, trend = sm.tsa.filters.hpfilter(df[var], 1600)
+    df[cycle.name] = cycle
+    df[trend.name] = trend
+
+# Some examinations: Correlations b/w HP-cycle and log-diff are low
+df[['logOutput_cycle', 'logI_int_cycle', 'logI_tan_cycle', 'logDiffOutput', 'logDiffI_int', 'logDiffI_tan']].corr()
+df[['logOutput_cycle', 'logDiffOutput']].plot()
+df[['logOutput_cycle', 'logI_int_cycle', 'logI_tan_cycle']].plot()
+df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']].plot()
+
+"""
+Estimate VAR using HP-filtered series
+"""
+dataHP = df[['logTFP_cycle', 'logOutput_cycle', 'logI_tan_cycle', 'logI_int_cycle']]
+dataHP = dataHP[(dataHP.index >= '1983-01-01') & (dataHP.index <= '2007-12-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=25)
+irfHP.plot(orth=True)
+#irfHP.plot_cum_effects(orth=True)
+
+"""
+Estimate VAR using HP-filtered series Low
+"""
+modelHPL = VAR(dataHP[dataHP.index <= dataHP.index[len(dataHP)//2]])
+resultHPL = modelHPL.fit(maxlags=4, ic=None, verbose=True)
+resultHPL.summary()
+
+# IRFs
+irfHPL = resultHPL.irf(periods=25)
+irfHPL.plot(orth=True)
+#irfHPL.plot_cum_effects(orth=True)
+
+"""
+Estimate VAR using HP-filtered series High
+"""
+modelHPH = VAR(dataHP[dataHP.index >= dataHP.index[len(dataHP)//2]])
+resultHPH = modelHPH.fit(maxlags=4, ic=None, verbose=True)
+resultHPH.summary()
+
+# IRFs
+irfHPH = resultHPH.irf(periods=25)
+irfHPH.plot(orth=True)
+#irfHPL.plot_cum_effects(orth=True)
+
+"""
+10-series-VAR
+"""
+dataHP = df[['logOutput_cycle', 'logCons_cycle', 'logPrice_cycle',
+             'logI_tan_cycle', 'logI_int_cycle', 'logWage_cycle',
+             'logProd_cycle', 'logFF_cycle', 'logProfit_cycle',
+             'logM2growth_cycle']]
+dataHP = dataHP[(dataHP.index >= '1959-01-01') & (dataHP.index <= '2007-01-01')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=25)
+irfHP.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
+#irfHP.plot_cum_effects(orth=True)
+
+"""
+Estimate VAR using HP-filtered series Low
+"""
+modelHPL = VAR(dataHP[dataHP.index <= dataHP.index[len(dataHP)//2]])
+resultHPL = modelHPL.fit(maxlags=4, ic=None, verbose=True)
+resultHPL.summary()
+
+# IRFs
+irfHPL = resultHPL.irf(periods=25)
+irfHPL.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
+#irfHPL.plot_cum_effects(orth=True)
+
+"""
+Estimate VAR using HP-filtered series High
+"""
+modelHPH = VAR(dataHP[dataHP.index >= dataHP.index[len(dataHP)//2]])
+resultHPH = modelHPH.fit(maxlags=4, ic=None, verbose=True)
+resultHPH.summary()
+
+# IRFs
+irfHPH = resultHPH.irf(periods=25)
+irfHPH.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
+#irfHPL.plot_cum_effects(orth=True)
+
+
+"""
+10-series-VAR
+"""
+dataHP = df[['logOutput_cycle', 'logCons_cycle',
+             'logI_tan_cycle', 'logI_int_cycle', 'logWage_cycle',
+             'logProd_cycle', 'logProfit_cycle']]
+dataHP = dataHP[(dataHP.index >= '1959-01-01') & (dataHP.index <= '2007-01-01')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=25)
+irfHP.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
+#irfHP.plot_cum_effects(orth=True)
+
+"""
+Estimate VAR using HP-filtered series Low
+"""
+modelHPL = VAR(dataHP[dataHP.index <= dataHP.index[len(dataHP)//2]])
+resultHPL = modelHPL.fit(maxlags=4, ic=None, verbose=True)
+resultHPL.summary()
+
+# IRFs
+irfHPL = resultHPL.irf(periods=25)
+irfHPL.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
+#irfHPL.plot_cum_effects(orth=True)
+
+"""
+Estimate VAR using HP-filtered series High
+"""
+modelHPH = VAR(dataHP[dataHP.index >= dataHP.index[len(dataHP)//2]])
+resultHPH = modelHPH.fit(maxlags=4, ic=None, verbose=True)
+resultHPH.summary()
+
+# IRFs
+irfHPH = resultHPH.irf(periods=25)
+irfHPH.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
+#irfHPL.plot_cum_effects(orth=True)
+
