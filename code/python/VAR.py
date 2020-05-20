@@ -14,9 +14,21 @@ from datetime import datetime
 import statsmodels.api as sm
 from statsmodels.tsa.api import VAR
 
+# Solow residual from https://research.stlouisfed.org/pdl/1034
+# tfp = pd.read_csv('Solow_residual_Quarterly.txt',sep='\t')
+# tfp.rename(columns={'observation_date': 'DATE', 'GDPC1_20180915': 'TFP'}, inplace=True)
+# tfp.set_index('DATE', inplace=True)
 
-tfp=pd.read_csv('Solow_residual_Quarterly.txt',sep='\t')
-tfp.rename(columns={'observation_date': 'DATE', 'GDPC1_20180915': 'TFP'}, inplace=True)
+# TFP obtained from https://www.frbsf.org/economic-research/indicators-data/total-factor-productivity-tfp/
+# It's already in the form of 400*log-differenced!!!
+tfp = pd.read_excel('tfp.xlsx')
+tfp.dropna(inplace=True)
+tfp.set_index('DATE', inplace=True)
+
+# annual TFP growth
+tfp = pd.read_excel('tfpa.xlsx')
+tfp.dropna(inplace=True)
+tfp.DATE = pd.to_datetime(tfp.DATE, format='%Y')
 tfp.set_index('DATE', inplace=True)
 
 # Decide time period
@@ -26,6 +38,7 @@ end = now = datetime.now().date()
 """
 Download data series from FRED
 """
+# --- Quarterly series 
 # GDP
 gdp = web.DataReader('GDP', 'fred', start=start, end=end)
 gdp.rename(columns={'GDP': 'gdp'}, inplace=True)
@@ -75,6 +88,33 @@ CP.rename(columns={'CP': 'CP'}, inplace=True)
 M2 = web.DataReader('M2SL', 'fred', start=start, end=end)
 M2.rename(columns={'M2SL': 'M2'}, inplace=True)
 M2 = M2.resample('Q', convention='start', loffset='d').mean()
+
+"""
+"""
+# --- Yearly series
+# GDPA
+gdp = web.DataReader('GDPA', 'fred', start=start, end=end)
+gdp.rename(columns={'GDPA': 'gdp'}, inplace=True)
+
+# Gross Private Domestic Investment
+inv = web.DataReader('GPDIA', 'fred', start=start, end=end)
+inv.rename(columns={'GPDIA': 'Inv'}, inplace=True)
+
+# Gross Private Domestic Investment: Fixed Investment: Nonresidential: Intellectual Property Products
+ip = web.DataReader('Y001RC1A027NBEA', 'fred', start=start, end=end)
+ip.rename(columns={'Y001RC1A027NBEA': 'I_int'}, inplace=True)
+
+# Gross Domestic Product: Implicit Price Deflator
+gdpdef = web.DataReader('A191RD3A086NBEA', 'fred', start=start, end=end)
+gdpdef.rename(columns={'A191RD3A086NBEA': 'gdpdef'}, inplace=True)
+
+# Gross private domestic investment (implicit price deflator)
+invdef = web.DataReader('A006RD3A086NBEA', 'fred', start=start, end=end)
+invdef.rename(columns={'A006RD3A086NBEA': 'P_Inv'}, inplace=True)
+
+# Gross Private Domestic Investment: Fixed Investment: Nonresidential: Intellectual Property Products: Implicit Price Deflator
+ipdef = web.DataReader('Y001RD3A086NBEA', 'fred', start=start, end=end)
+ipdef.rename(columns={'Y001RD3A086NBEA': 'P_int'}, inplace=True)
 
 """
 Clean and transform data series
@@ -130,19 +170,47 @@ df['logProd'] = np.log(df['Prod'])
 df['logFF'] = np.log(df['FF'])
 df['logProfit'] = np.log(df['Profit_real'])
 df['logM2growth'] = np.log(df['M2']).diff()
-df['logTFP'] = np.log(df['TFP'])
+#df['logTFP'] = np.log(df['TFP'])
 
 # --- Consutrct log-differenced real variables
 df['logDiffOutput'] = df['logOutput'].diff()
+df['logDiffCons'] = df['logCons'].diff()
+df['logDiffPrice'] = df['logPrice'].diff()
 df['logDiffI_tan'] = df['logI_tan'].diff()
 df['logDiffI_int'] = df['logI_int'].diff()
+df['logDiffWage'] = df['logWage'].diff()
+df['logDiffProd'] = df['logProd'].diff()
+df['logDiffFF'] = df['logFF'].diff()
+df['logDiffProfit'] = df['logProfit'].diff()
+df['logDiffM2growth'] = df['logM2growth'].diff()
+#df['logDiffTFP'] = df['dtfp']
+df['logDiffTFP'] = df['dtfp_util'] / 400
 
-# --- Apply HP-filter
+# --- Consutrct quarter to quarter log-differenced real variables
+df['logDiffOutput'] = df['logOutput'].diff(4)
+df['logDiffCons'] = df['logCons'].diff(4)
+df['logDiffPrice'] = df['logPrice'].diff(4)
+df['logDiffI_tan'] = df['logI_tan'].diff(4)
+df['logDiffI_int'] = df['logI_int'].diff(4)
+df['logDiffWage'] = df['logWage'].diff(4)
+df['logDiffProd'] = df['logProd'].diff(4)
+df['logDiffFF'] = df['logFF'].diff(4)
+df['logDiffProfit'] = df['logProfit'].diff(4)
+df['logDiffM2growth'] = df['logM2growth'].diff(4)
+#df['logDiffTFP'] = df['dtfp'] / 400
+df['logDiffTFP'] = df['dtfp_util'] / 400
+
+# --- Consutrct yearly log-differenced real variables
+df['logDiffOutput'] = df['logOutput'].diff()
+df['logDiffI_tan'] = df['logI_tan'].diff()
+df['logDiffI_int'] = df['logI_int'].diff()
+df['logDiffTFP'] = df['dtfp_util']
+
 df.dropna(inplace=True)
 
+# --- Apply HP-filter
 for var in ['logOutput', 'logCons', 'logPrice', 'logI_tan', 'logI_int',
-            'logWage', 'logProd', 'logFF', 'logProfit', 'logM2growth',
-            'logTFP']:
+            'logWage', 'logProd', 'logFF', 'logProfit', 'logM2growth']:
     cycle, trend = sm.tsa.filters.hpfilter(df[var], 1600)
     df[cycle.name] = cycle
     df[trend.name] = trend
@@ -156,7 +224,7 @@ df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']].plot()
 """
 Estimate VAR using HP-filtered series
 """
-dataHP = df[['logTFP_cycle', 'logOutput_cycle', 'logI_tan_cycle', 'logI_int_cycle']]
+dataHP = df[['logOutput_cycle', 'logI_int_cycle', 'logI_tan_cycle']]
 dataHP = dataHP[(dataHP.index >= '1983-01-01') & (dataHP.index <= '2007-12-31')]
 modelHP = VAR(dataHP)
 resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
@@ -234,7 +302,7 @@ irfHPH.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
 
 
 """
-10-series-VAR
+7-series-VAR
 """
 dataHP = df[['logOutput_cycle', 'logCons_cycle',
              'logI_tan_cycle', 'logI_int_cycle', 'logWage_cycle',
@@ -246,7 +314,7 @@ resultHP.summary()
 
 # IRFs
 irfHP = resultHP.irf(periods=25)
-irfHP.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
+irfHP.plot(orth=True, impulse='logOutput_cycle', response='logOutput_cycle')
 #irfHP.plot_cum_effects(orth=True)
 
 """
@@ -273,3 +341,47 @@ irfHPH = resultHPH.irf(periods=25)
 irfHPH.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
 #irfHPL.plot_cum_effects(orth=True)
 
+"""
+Estimate 3-VAR using 400*log-differenced series
+"""
+dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
+dataHP = dataHP[(dataHP.index >= '1983-01-01') & (dataHP.index <= '2007-12-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=20)
+irfHP.plot(orth=True)
+irfHP.plot_cum_effects(orth=True)
+
+"""
+Estimate 4-VAR using 400*log-differenced series
+"""
+dataHP = df[['logDiffTFP', 'logDiffOutput', 
+             'logDiffI_int', 'logDiffI_tan']]
+dataHP = dataHP[(dataHP.index >= '1983-01-01') & (dataHP.index <= '2007-12-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=20)
+irfHP.plot(orth=True)
+irfHP.plot_cum_effects(orth=True)
+
+"""
+7-series-VAR using 400*log-differenced series
+"""
+dataHP = df[['logDiffOutput', 'logDiffCons',
+             'logDiffI_tan', 'logDiffI_int', 'logDiffWage',
+             'logDiffProd', 'logDiffProfit']]
+dataHP = dataHP[(dataHP.index >= '1983-01-01') & (dataHP.index <= '2007-01-01')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=20)
+irfHP.plot(orth=True, impulse='logDiffOutput', response='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput', response='logDiffOutput')
