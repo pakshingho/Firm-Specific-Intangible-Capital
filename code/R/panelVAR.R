@@ -46,16 +46,19 @@ summary(results)
 
 ############### log diff
 results <-
-  pvarfeols(dependent_vars = c("dln_inv", "dln_output"),
+  pvarfeols(dependent_vars = c("dln_output", "dln_inv"),
             lags = 4,
             transformation = "demean",
             data = data.pvar,
             panel_identifier= c("sic", "year"))
 summary(results)
 
-irfs<-oirf(results, n.ahead=25)
-plot(oirf(results, n.ahead=25))
+irfs<-oirf(results, n.ahead=20)
+plot(oirf(results, n.ahead=20))
 plot(stability(results))
+
+# cumulative irf
+plot(cumsum(irfs[["dln_output"]][,"dln_inv"]))
 
 ####### level
 results <-
