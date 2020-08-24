@@ -184,7 +184,7 @@ df['logDiffFF'] = df['logFF'].diff()
 df['logDiffProfit'] = df['logProfit'].diff()
 df['logDiffM2growth'] = df['logM2growth'].diff()
 #df['logDiffTFP'] = df['dtfp']
-df['logDiffTFP'] = df['dtfp_util'] / 400
+df['logDiffTFP'] = df['dtfp_util'] /400
 
 # --- Consutrct quarter to quarter log-differenced real variables
 df['logDiffOutput'] = df['logOutput'].diff(4)
@@ -272,9 +272,10 @@ resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
 resultHP.summary()
 
 # IRFs
-irfHP = resultHP.irf(periods=25)
+irfHP = resultHP.irf(periods=20)
 irfHP.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
 #irfHP.plot_cum_effects(orth=True)
+irfHP.plot(orth=True, impulse='logFF_cycle', response='logProfit_cycle')
 
 """
 Estimate VAR using HP-filtered series Low

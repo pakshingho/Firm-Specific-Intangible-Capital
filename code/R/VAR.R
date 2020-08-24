@@ -10,35 +10,35 @@ library(vars)
 
 fredr_set_key("8a6156203f03ec0b67fb55533e334fcf")
 
-mdata <- read_excel('FirmSpecificIntangibleCapital/data/gdp_capital_q.xls')
-
-mdata$date <- as.yearqtr(mdata$Time, format = "Q%q-%Y")
-rownames(mdata) <- mdata$date
-#mdata <- mdata[mdata$date<'2020 Q1',]
-mdata$Time <- NULL
-mdata$date <- NULL
-
-gdp<-ts(mdata$gdp, start=c(1960, 1), end=c(2021, 4), frequency = 4)
-capital<-ts(mdata$capital, start=c(1960, 1), end=c(2021, 4), frequency = 4)
-ts.plot(gdp)
-
-gdp.hp<-hpfilter(log(gdp))
-capital.hp<-hpfilter(log(capital))
-plot(capital.hp, col=1)
-plot(gdp.hp, col=1)
-
-output<-ts(gdp.hp$cycle, start=c(1960, 1), end=c(2019, 4), frequency = 4)
-capital<-ts(capital.hp$cycle, start=c(1960, 1), end=c(2019, 4), frequency = 4)
-
-data.var <- as.matrix(cbind(capital, output))
-#colnames(data.var) <- c('output', 'capital')
-results <- VAR(data.var, p=4)
-summary(results)
-
-impresp <- irf(results, n.ahead=25, ci=0.95)
-plot(impresp)
-
-plot(irf(results, impulse='output', response='capital', n.ahead=25, ci=0.95))
+# mdata <- read_excel('FirmSpecificIntangibleCapital/data/gdp_capital_q.xls')
+# 
+# mdata$date <- as.yearqtr(mdata$Time, format = "Q%q-%Y")
+# rownames(mdata) <- mdata$date
+# #mdata <- mdata[mdata$date<'2020 Q1',]
+# mdata$Time <- NULL
+# mdata$date <- NULL
+# 
+# gdp<-ts(mdata$gdp, start=c(1960, 1), end=c(2021, 4), frequency = 4)
+# capital<-ts(mdata$capital, start=c(1960, 1), end=c(2021, 4), frequency = 4)
+# ts.plot(gdp)
+# 
+# gdp.hp<-hpfilter(log(gdp))
+# capital.hp<-hpfilter(log(capital))
+# plot(capital.hp, col=1)
+# plot(gdp.hp, col=1)
+# 
+# output<-ts(gdp.hp$cycle, start=c(1960, 1), end=c(2019, 4), frequency = 4)
+# capital<-ts(capital.hp$cycle, start=c(1960, 1), end=c(2019, 4), frequency = 4)
+# 
+# data.var <- as.matrix(cbind(capital, output))
+# #colnames(data.var) <- c('output', 'capital')
+# results <- VAR(data.var, p=4)
+# summary(results)
+# 
+# impresp <- irf(results, n.ahead=25, ci=0.95)
+# plot(impresp)
+# 
+# plot(irf(results, impulse='output', response='capital', n.ahead=25, ci=0.95))
 
 #####################
 # Obtain NIPA Series using FRED API
@@ -165,7 +165,7 @@ legend('topright',
 cor(cbind(ip/inv, ip/(inv-ip), ipdef/invdef, inv/gdp, invdef/gdpdef))
 
 # how bad to use real total investment - real intangible investment = real tangible investment
-ts.plot(ip/inv*(ipdef/invdef-1))
+# ts.plot(ip/inv*(ipdef/invdef-1))
 
 # Create log real variables
 gdp<-log(gdp/gdpdef)
@@ -176,7 +176,7 @@ tinv<-log(inv/invdef - ip/ipdef)
 gdpa<-log(gdpa/gdpadef)
 cap <- log(cap/invadef)
 
-# Apply HP-filter 
+# Apply HP-filter ####
 gdp.hp<-hpfilter(gdp)
 inv.hp<-hpfilter(inv)
 ip.hp<-hpfilter(ip)
@@ -193,41 +193,64 @@ inv_int <- ip.hp$cycle
 outputa <- gdpa.hp$cycle
 capital <- cap.hp$cycle
 
+output <- window(output, start=1955, end=1987)
+inv_int <- window(inv_int, start=1955, end=1987)
+inv_tan <- window(inv_tan, start=1955, end=1987)
 
+output <- window(output, start=1987, end=2019)
+inv_int <- window(inv_int, start=1987, end=2019)
+inv_tan <- window(inv_tan, start=1987, end=2019)
+
+# hp VAR
 data.var <- as.matrix(cbind(output, inv_int, inv_tan))
-results <- VAR(data.var, p=8)
+results <- VAR(data.var, p=4)
 summary(results)
 
-impresp <- irf(results, n.ahead=25, ci=0.95)
+impresp <- irf(results, n.ahead=15, boot = TRUE, ci=0.95, cumulative=F)
+impresp <- irf(results, n.ahead=15, boot = TRUE, ci=0.95, cumulative=T)
+
 plot(impresp)
 
-plot(irf(results, impulse='output', response='output', n.ahead=25, ci=0.95, cumulative=F))
+plot(irf(results, impulse='output', response=NULL, n.ahead=15, ci=0.95, cumulative=T))
 
 
-# log diff
-output <- diff(gdp)
-inv_both <- diff(inv)
-inv_tan <- diff(tinv)
-inv_int <- diff(ip)
+# log diff ####
+output <- diff(gdp, lag=4)
+inv_both <- diff(inv, lag=4)
+inv_tan <- diff(tinv, lag=4)
+inv_int <- diff(ip, lag=4)
 
+output <- window(output, start=1955, end=2003)
+inv_int <- window(inv_int, start=1955, end=2003)
+inv_tan <- window(inv_tan, start=1955, end=2003)
+
+output <- window(output, start=1955, end=1987)
+inv_int <- window(inv_int, start=1955, end=1987)
+inv_tan <- window(inv_tan, start=1955, end=1987)
+
+output <- window(output, start=1987, end=2019)
+inv_int <- window(inv_int, start=1987, end=2019)
+inv_tan <- window(inv_tan, start=1987, end=2019)
+
+# logdiff VAR
 data.var <- as.matrix(cbind(output, inv_int, inv_tan)) # investment is a decision variable, respond to all shocks
-results <- VAR(data.var, p=8)
+results <- VAR(data.var, p=4)
 summary(results)
 
-impresp <- irf(results, n.ahead=25, ci=0.95, cumulative=T)
+impresp <- irf(results, n.ahead=20, ci=0.95, cumulative=F, boot = TRUE)
 plot(impresp)
 
-plot(irf(results, impulse='output', response='output', n.ahead=25, ci=0.95, cumulative=T))
+plot(irf(results, impulse='output', response=NULL, n.ahead=15, ci=0.95, cumulative=T, boot = T))
 
 # capital
 data.var <- as.matrix(cbind(capital, outputa))
 results <- VAR(data.var, p=8)
 summary(results)
 
-impresp <- irf(results, n.ahead=25, ci=0.95)
+impresp <- irf(results, n.ahead=20, ci=0.95, cumulative=F)
 plot(impresp)
 
-plot(irf(results, impulse='outputa', response='outputa', n.ahead=25, ci=0.95, cumulative=F))
+plot(irf(results, impulse='outputa', response='outputa', n.ahead=20, ci=0.95, cumulative=T))
 
 # capital fd
 outputa <- diff(gdpa)
@@ -236,7 +259,7 @@ data.var <- as.matrix(cbind(outputa, capital))
 results <- VAR(data.var, p=8)
 summary(results)
 
-impresp <- irf(results, n.ahead=25, ci=0.95)
+impresp <- irf(results, n.ahead=25, ci=0.95, cumulative=T)
 plot(impresp)
 
 plot(irf(results, impulse='outputa', response='outputa', n.ahead=25, ci=0.95, cumulative=F))
