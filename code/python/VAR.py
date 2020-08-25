@@ -21,7 +21,7 @@ from statsmodels.tsa.api import VAR
 
 # TFP obtained from https://www.frbsf.org/economic-research/indicators-data/total-factor-productivity-tfp/
 # It's already in the form of 400*log-differenced!!!
-tfp = pd.read_excel('tfp.xlsx')
+tfp = pd.read_excel('data/tfp.xlsx')
 tfp.dropna(inplace=True)
 tfp.set_index('DATE', inplace=True)
 
@@ -220,6 +220,7 @@ df[['logOutput_cycle', 'logI_int_cycle', 'logI_tan_cycle', 'logDiffOutput', 'log
 df[['logOutput_cycle', 'logDiffOutput']].plot()
 df[['logOutput_cycle', 'logI_int_cycle', 'logI_tan_cycle']].plot()
 df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']].plot()
+df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan', 'logDiffTFP']].plot()
 
 """
 Estimate VAR using HP-filtered series
@@ -266,7 +267,7 @@ dataHP = df[['logOutput_cycle', 'logCons_cycle', 'logPrice_cycle',
              'logI_tan_cycle', 'logI_int_cycle', 'logWage_cycle',
              'logProd_cycle', 'logFF_cycle', 'logProfit_cycle',
              'logM2growth_cycle']]
-dataHP = dataHP[(dataHP.index >= '1959-01-01') & (dataHP.index <= '2007-01-01')]
+dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '2003-01-01')]
 modelHP = VAR(dataHP)
 resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
 resultHP.summary()
@@ -346,30 +347,151 @@ irfHPH.plot(orth=True, impulse='logProd_cycle', response='logOutput_cycle')
 Estimate 3-VAR using 400*log-differenced series
 """
 dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
-dataHP = dataHP[(dataHP.index >= '1983-01-01') & (dataHP.index <= '2007-12-31')]
+dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
+dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '2003-01-31')]
 modelHP = VAR(dataHP)
 resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
 resultHP.summary()
 
 # IRFs
-irfHP = resultHP.irf(periods=20)
+irfHP = resultHP.irf(periods=16)
 irfHP.plot(orth=True)
 irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput', response='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput', response='logDiffI_tan')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput', response='logDiffI_int')
+
+# customized irfs
+pd.Series(irfHP.orth_irfs[0:21,0,0]).plot()
+pd.Series(irfHP.orth_irfs[0:21,1,0]).plot()
+pd.Series(irfHP.orth_irfs[0:21,2,0]).plot()
+pd.Series(irfHP.orth_cum_effects[0:21,0,0]).plot()
+pd.Series(irfHP.orth_cum_effects[0:21,1,0]).plot()
+pd.Series(irfHP.orth_cum_effects[0:21,2,0]).plot()
+
+# output to output
+temp=irfHP.errband_mc(repl=1000, orth=True)
+pd.Series(temp[0][0:21,0,0]).plot()
+pd.Series(temp[1][0:21,0,0]).plot()
+pd.Series(irfHP.orth_irfs[0:21,0,0]).plot()
+
+# cumulative output to output
+temp=irfHP.cum_errband_mc(repl=1000, orth=True)
+pd.Series(temp[0][0:21,0,0]).plot()
+pd.Series(temp[1][0:21,0,0]).plot()
+pd.Series(irfHP.orth_cum_effects[0:21,0,0]).plot()
+
+"""
+Estimate 3-VAR using 400*log-differenced series High
+"""
+dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
+dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
+dataHP = dataHP[(dataHP.index >= '1979-01-01') & (dataHP.index <= '2003-01-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=16)
+irfHP.plot(orth=True)
+irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+
+"""
+Estimate 3-VAR using 400*log-differenced series Low
+"""
+dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
+dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
+dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '1979-01-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=16)
+irfHP.plot(orth=True)
+irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+
+"""
+Estimate 3-VAR using 400*log-differenced series H
+"""
+dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
+dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
+dataHP = dataHP[(dataHP.index >= '1987-01-01') & (dataHP.index <= '2003-01-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=16)
+irfHP.plot(orth=True)
+irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+
+"""
+Estimate 3-VAR using 400*log-differenced series M
+"""
+dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
+dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
+dataHP = dataHP[(dataHP.index >= '1971-01-01') & (dataHP.index <= '1987-01-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=16)
+irfHP.plot(orth=True)
+irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+
+"""
+Estimate 3-VAR using 400*log-differenced series L
+"""
+dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
+dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
+dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '1971-01-31')]
+modelHP = VAR(dataHP)
+resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
+resultHP.summary()
+
+# IRFs
+irfHP = resultHP.irf(periods=16)
+irfHP.plot(orth=True)
+irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
 
 """
 Estimate 4-VAR using 400*log-differenced series
 """
-dataHP = df[['logDiffTFP', 'logDiffOutput', 
+dataHP = df[['logDiffTFP', 'logDiffOutput',
              'logDiffI_int', 'logDiffI_tan']]
-dataHP = dataHP[(dataHP.index >= '1983-01-01') & (dataHP.index <= '2007-12-31')]
+dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '2003-01-31')]
 modelHP = VAR(dataHP)
 resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
 resultHP.summary()
 
 # IRFs
-irfHP = resultHP.irf(periods=20)
+irfHP = resultHP.irf(periods=16)
 irfHP.plot(orth=True)
 irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
 
 """
 7-series-VAR using 400*log-differenced series
