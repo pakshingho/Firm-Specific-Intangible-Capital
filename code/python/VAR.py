@@ -197,8 +197,8 @@ df['logDiffProd'] = df['logProd'].diff(4)
 df['logDiffFF'] = df['logFF'].diff(4)
 df['logDiffProfit'] = df['logProfit'].diff(4)
 df['logDiffM2growth'] = df['logM2growth'].diff(4)
-#df['logDiffTFP'] = df['dtfp'] / 400
-df['logDiffTFP'] = df['dtfp_util'] / 400
+#df['logDiffTFP'] = df['dtfp']
+df['logDiffTFP'] = df['dtfp_util']
 
 # --- Consutrct yearly log-differenced real variables
 df['logDiffOutput'] = df['logOutput'].diff()
@@ -348,6 +348,7 @@ Estimate 3-VAR using 400*log-differenced series
 """
 dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
 dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
+dataHP = df[['logDiffI_int', 'logDiffI_tan', 'logDiffOutput']]
 dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '2003-01-31')]
 modelHP = VAR(dataHP)
 resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
@@ -369,6 +370,8 @@ irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput', response='logDiffI_in
 pd.Series(irfHP.orth_irfs[0:21,0,0]).plot()
 pd.Series(irfHP.orth_irfs[0:21,1,0]).plot()
 pd.Series(irfHP.orth_irfs[0:21,2,0]).plot()
+pd.Series(irfHP.orth_irfs[0:21,2,2]).plot()
+
 pd.Series(irfHP.orth_cum_effects[0:21,0,0]).plot()
 pd.Series(irfHP.orth_cum_effects[0:21,1,0]).plot()
 pd.Series(irfHP.orth_cum_effects[0:21,2,0]).plot()
@@ -390,36 +393,85 @@ Estimate 3-VAR using 400*log-differenced series High
 """
 dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
 dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
-dataHP = dataHP[(dataHP.index >= '1979-01-01') & (dataHP.index <= '2003-01-31')]
-modelHP = VAR(dataHP)
-resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
-resultHP.summary()
+dataHP_H = dataHP[(dataHP.index >= '1979-01-01') & (dataHP.index <= '2003-01-31')]
+modelHP_H = VAR(dataHP_H)
+resultHP_H = modelHP_H.fit(maxlags=4, ic=None, verbose=True)
+resultHP_H.summary()
 
 # IRFs
-irfHP = resultHP.irf(periods=16)
-irfHP.plot(orth=True)
-irfHP.plot_cum_effects(orth=True)
+irfHP_H = resultHP_H.irf(periods=16)
+irfHP_H.plot(orth=True)
+irfHP_H.plot_cum_effects(orth=True)
 
-irfHP.plot(orth=True, impulse='logDiffOutput')
-irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+irfHP_H.plot(orth=True, impulse='logDiffOutput')
+irfHP_H.plot_cum_effects(orth=True, impulse='logDiffOutput')
 
 """
 Estimate 3-VAR using 400*log-differenced series Low
 """
 dataHP = df[['logDiffOutput', 'logDiffI_int', 'logDiffI_tan']]
 dataHP = df[['logDiffI_tan', 'logDiffI_int', 'logDiffOutput']]
-dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '1979-01-31')]
-modelHP = VAR(dataHP)
-resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
-resultHP.summary()
+dataHP_L = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '1979-01-31')]
+modelHP_L = VAR(dataHP_L)
+resultHP_L = modelHP_L.fit(maxlags=4, ic=None, verbose=True)
+resultHP_L.summary()
 
 # IRFs
-irfHP = resultHP.irf(periods=16)
-irfHP.plot(orth=True)
-irfHP.plot_cum_effects(orth=True)
+irfHP_L = resultHP_L.irf(periods=16)
+irfHP_L.plot(orth=True)
+irfHP_L.plot_cum_effects(orth=True)
 
-irfHP.plot(orth=True, impulse='logDiffOutput')
-irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+irfHP_L.plot(orth=True, impulse='logDiffOutput')
+irfHP_L.plot_cum_effects(orth=True, impulse='logDiffOutput')
+
+"""
+Plot
+"""
+plt.style.use('ggplot')
+
+# confidence bands
+irfHP_H_band=irfHP_H.errband_mc(repl=1000, orth=True)
+irfHP_L_band=irfHP_L.errband_mc(repl=1000, orth=True)
+pd.Series(irfHP_L_band[0][0:21,2,2][:10]).plot()
+pd.Series(irfHP_L_band[1][0:21,2,2][:10]).plot()
+pd.Series(irfHP_H_band[0][0:21,2,2][:10]).plot()
+pd.Series(irfHP_H_band[1][0:21,2,2][:10]).plot()
+
+# irfs
+pd.Series(irfHP_H.orth_irfs[0:21,2,2][:10]).plot()
+#pd.Series(irfHP.orth_irfs[0:21,2,2][:10]).plot()
+pd.Series(irfHP_L.orth_irfs[0:21,2,2][:10]).plot()
+plt.legend(['High intangible share', 
+            #'M', 
+            'Low intangible share'])
+plt.title('Impulse responses of output shock to output')
+
+# normalized by period 0
+pd.Series(irfHP_H.orth_irfs[0:21,2,2][:10]/irfHP_H.orth_irfs[0:21,2,2][0]).plot()
+#pd.Series(irfHP.orth_irfs[0:21,2,2][:10]).plot()
+pd.Series(irfHP_L.orth_irfs[0:21,2,2][:10]/irfHP_L.orth_irfs[0:21,2,2][0]).plot()
+plt.legend(['High intangible share', 
+            #'M', 
+            'Low intangible share'])
+plt.title('Impulse responses of output shock to output (normalized)')
+
+# cumulative irfs
+pd.Series(irfHP_H.orth_cum_effects[0:21,2,2]).plot()
+#pd.Series(irfHP.orth_cum_effects[0:21,2,2]).plot()
+pd.Series(irfHP_L.orth_cum_effects[0:21,2,2]).plot()
+plt.legend(['High intangible share', 
+            #'M', 
+            'Low intangible share'])
+plt.title('Cumulative responses of output shock to output')
+
+# normalized by period 0
+pd.Series(irfHP_H.orth_cum_effects[0:21,2,2]/irfHP_H.orth_cum_effects[0:21,2,2][0]).plot()
+#pd.Series(irfHP.orth_cum_effects[0:21,2,2]).plot()
+pd.Series(irfHP_L.orth_cum_effects[0:21,2,2]/irfHP_L.orth_cum_effects[0:21,2,2][0]).plot()
+plt.legend(['High intangible share', 
+            #'M', 
+            'Low intangible share'])
+plt.title('Cumulative responses of output shock to output (normalized)')
 
 """
 Estimate 3-VAR using 400*log-differenced series H
@@ -478,9 +530,9 @@ irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
 """
 Estimate 4-VAR using 400*log-differenced series
 """
-dataHP = df[['logDiffTFP', 'logDiffOutput',
-             'logDiffI_int', 'logDiffI_tan']]
-dataHP = dataHP[(dataHP.index >= '1955-01-01') & (dataHP.index <= '2003-01-31')]
+dataHP = df[['logDiffTFP', 
+             'logDiffI_int', 'logDiffI_tan', 'logDiffOutput']]
+dataHP = dataHP[(dataHP.index >= '1979-01-01') & (dataHP.index <= '2003-01-31')]
 modelHP = VAR(dataHP)
 resultHP = modelHP.fit(maxlags=4, ic=None, verbose=True)
 resultHP.summary()
@@ -489,6 +541,9 @@ resultHP.summary()
 irfHP = resultHP.irf(periods=16)
 irfHP.plot(orth=True)
 irfHP.plot_cum_effects(orth=True)
+
+irfHP.plot(orth=True, impulse='logDiffTFP')
+irfHP.plot_cum_effects(orth=True, impulse='logDiffTFP')
 
 irfHP.plot(orth=True, impulse='logDiffOutput')
 irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
