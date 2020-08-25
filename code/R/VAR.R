@@ -120,26 +120,28 @@ invadef <- fredr(
 # Convert raw data into ts-objects
 gdp<-ts(gdp$value, start=c(1947, 1), frequency = 4)
 gdpdef<-ts(gdpdef$value, start=c(1947, 1), frequency = 4)
-gdpdef<-gdpdef/100
+#gdpdef<-gdpdef/100
 inv<-ts(inv$value, start=c(1947, 1), frequency = 4)
 invdef<-ts(invdef$value, start=c(1947, 1), frequency = 4)
-invdef <- invdef/100
+#invdef <- invdef/100
 ip<-ts(ip$value, start=c(1947, 1), frequency = 4)
 ipdef<-ts(ipdef$value, start=c(1947, 1), frequency = 4)
-ipdef<-ipdef/100
+#ipdef<-ipdef/100
 
 cap<-ts(cap$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
 gdpa<-ts(gdpa$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
 invadef<-ts(invadef$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
-invadef<- invadef/100
+#invadef<- invadef/100
 gdpadef<-ts(gdpadef$value, start=c(1947, 1), end=c(2018,1), frequency = 1)
-gdpadef<-gdpadef/100
-#construct tangible investment deflator and nominal tangible investment
+#gdpadef<-gdpadef/100
+
+#construct tangible investment deflator and nominal tangible investment ####
 tinv <- inv - ip
 tinvdef <- invdef - (ip/ipdef) / (inv/invdef - ip/ipdef) * (ipdef - invdef)
 #as.matrix(cbind((inv/invdef - ip/ipdef)*tinvdef, tinv)) # tangible investment deflator verification
+#cor(as.matrix(cbind((inv/invdef - ip/ipdef), tinv/tinvdef)))
 
-# Some interesting findings:
+# Some interesting findings: ####
 # 1. declining both tangible & intangible investment prices
 # 2. intangible price declining faster
 # 3. rising nominal intangible investment shares
@@ -167,11 +169,11 @@ cor(cbind(ip/inv, ip/(inv-ip), ipdef/invdef, inv/gdp, invdef/gdpdef))
 # how bad to use real total investment - real intangible investment = real tangible investment
 # ts.plot(ip/inv*(ipdef/invdef-1))
 
-# Create log real variables
-gdp<-log(gdp/gdpdef)
-inv<-log(inv/invdef)
-ip<-log(ip/ipdef)
-tinv<-log(inv/invdef - ip/ipdef)
+# Create log real variables ####
+gdp<-log(gdp/gdpdef) # log real GDP
+inv<-log(inv/invdef) # log real total investment
+ip<-log(ip/ipdef) # log Real intangible investment
+tinv<-log(tinv/tinvdef) # log Real tangible investment
 
 gdpa<-log(gdpa/gdpadef)
 cap <- log(cap/invadef)
@@ -237,10 +239,22 @@ data.var <- as.matrix(cbind(output, inv_int, inv_tan)) # investment is a decisio
 results <- VAR(data.var, p=4)
 summary(results)
 
-impresp <- irf(results, n.ahead=20, ci=0.95, cumulative=F, boot = TRUE)
+impresp <- irf(results, n.ahead=15, ci=0.95, cumulative=F, boot = TRUE)
+impresp <- irf(results, n.ahead=15, ci=0.95, cumulative=T, boot = TRUE)
 plot(impresp)
 
+# plot one by one
+plot(impresp[["irf"]][["output"]][,"output"])
+lines(impresp[["irf"]][["output"]][,"output"])
+lines(impresp[["Lower"]][["output"]][,"output"])
+lines(impresp[["Upper"]][["output"]][,"output"])
+
 plot(irf(results, impulse='output', response=NULL, n.ahead=15, ci=0.95, cumulative=T, boot = T))
+
+plot(irf(results, impulse='output', response='output', n.ahead=15, ci=0.95, cumulative=T, boot = T))
+plot(irf(results, impulse='output', response='inv_tan', n.ahead=15, ci=0.95, cumulative=T, boot = T))
+plot(irf(results, impulse='output', response='inv_int', n.ahead=15, ci=0.95, cumulative=T, boot = T))
+
 
 # capital
 data.var <- as.matrix(cbind(capital, outputa))
