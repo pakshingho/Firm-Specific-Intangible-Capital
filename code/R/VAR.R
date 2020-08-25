@@ -277,3 +277,73 @@ impresp <- irf(results, n.ahead=25, ci=0.95, cumulative=T)
 plot(impresp)
 
 plot(irf(results, impulse='outputa', response='outputa', n.ahead=25, ci=0.95, cumulative=F))
+
+# local projection ####
+# Load necessary libraries
+library(lpirfs)
+
+# Load data from lpirfs package
+endog_data <- interest_rules_var_data
+endog_data$inv_int <- as.vector(inv_int*100)
+endog_data$inv_tan <- as.vector(inv_tan*100)
+col_order <- c('GDP_gap', 'inv_int', 'inv_tan', 'Infl', 'FF')
+col_order <- c('GDP_gap', 'inv_int', 'inv_tan')
+col_order <- c('inv_tan', 'inv_int', 'GDP_gap')
+col_order <- c('inv_int', 'inv_tan', 'GDP_gap')
+
+endog_data <- endog_data[, col_order]
+
+endog_data <- as.data.frame(as.matrix(cbind(output, inv_int, inv_tan)))
+endog_data <- as.data.frame(as.matrix(cbind(inv_tan, inv_int, output)))
+endog_dataH <- endog_data[1:96,]
+endog_dataL <- endog_data[96:193,]
+
+#endog_data <- as.data.frame(as.matrix(cbind(inv_int, inv_tan, output)))
+
+
+# Estimate linear model with lpirfs function
+results_lin <- lp_lin(endog_data,
+                      lags_endog_lin = 4,
+                      trend          = 0,
+                      shock_type     = 0,
+                      confint        = 1.96,
+                      hor            = 15)
+
+# Show summary. Equals table 3 in the paper
+summary(results_lin)[[1]][1]
+
+plot(results_lin)
+plot_lin(results_lin)
+plot(results_lin[["irf_lin_mean"]][,,1][1,])
+plot(cumsum(results_lin[["irf_lin_mean"]][,,1][1,]))
+
+# High
+# Estimate linear model with lpirfs function
+results_linH <- lp_lin(endog_dataH,
+                      lags_endog_lin = 4,
+                      trend          = 0,
+                      shock_type     = 0,
+                      confint        = 1.96,
+                      hor            = 10)
+
+# Show summary. Equals table 3 in the paper
+summary(results_linH)[[1]][1]
+
+plot(results_linH)
+
+# Low
+# Estimate linear model with lpirfs function
+results_linL <- lp_lin(endog_dataL,
+                      lags_endog_lin = 4,
+                      trend          = 0,
+                      shock_type     = 0,
+                      confint        = 1.96,
+                      hor            = 10)
+
+# Show summary. Equals table 3 in the paper
+summary(results_linL)[[1]][1]
+
+plot(results_linL)
+
+
+dev.off()
