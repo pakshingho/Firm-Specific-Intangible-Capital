@@ -1,5 +1,5 @@
 %----------------------------------------------------------------
-% CES non-rival intangibles version with both l1 l2 z1 z2 sk sh (shares)
+% CES non-rival intangibles version with both n1 n2 z1 z2 sk sh (shares)
 %----------------------------------------------------------------
 
 %----------------------------------------------------------------
