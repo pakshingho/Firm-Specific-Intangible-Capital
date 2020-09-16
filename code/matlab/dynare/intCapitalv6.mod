@@ -160,7 +160,7 @@ initval;
     i   = k * deltaK;
     y2  = h * deltaH;
 
-    k1  = ( theta1 * ( sk * k ) ^ ((lambda1 - 1) / lambda1) + (1 - theta1) * ( sk * h ) ^ ((lambda1 - 1) / lambda1) ) ^ (lambda1 / (lambda1 - 1));
+    k1  = ( theta1 * ( sk * k ) ^ ((lambda1 - 1) / lambda1) + (1 - theta1) * ( sh * h ) ^ ((lambda1 - 1) / lambda1) ) ^ (lambda1 / (lambda1 - 1));
     y1  = k1 ^ alpha1 * (exp(z1) * n1) ^ gamma1;
     k2 = ( theta2 * ( (1 - sk ) * k ) ^ ((lambda2 - 1) / lambda2) + (1 - theta2) * ( (1 - sh ) * h ) ^ ((lambda2 - 1) / lambda2) ) ^ (lambda2 / (lambda2 - 1));
     q  = 0.757152;
