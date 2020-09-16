@@ -36,17 +36,17 @@ cchi        = 1.75;
 
 model;
 	// 1. Euler equation for capital
-	c ^ (-1)		= bbeta * c(+1) ^ (-1) * (1 + rf);
+	1		= bbeta * c / c(+1) * (1 + rf);
 	
 	// 2. First order equation for labor-leisure
-	w * c ^ (-1)	= cchi / (1-l);
+	w   	= cchi * c / (1-l);
 
     // 3. Production func
     y = k(-1) ^ alpha * (exp(z1) * l) ^ gamma;
 
     // 4. FOC capital
-    1 = bbeta * c(+1) ^ (-1) / c ^ (-1) * (alpha * y(+1) / k + (1-delta));
-    %1 = bbeta * c(+1) ^ (-1) / c ^ (-1) * (rk(+1) + (1-delta)); % same result as above
+    1 = bbeta * c / c(+1) * (alpha * y(+1) / k + (1-delta));
+    %1 = bbeta * c / c(+1) * (rk(+1) + (1-delta)); % same result as above
     rk = alpha * y / k(-1);
 
     // 5. Capital law of motion
@@ -82,7 +82,7 @@ steady_state_model;
 	w			= gamma * y / l;
     profit = y - w * l - rk * k; 
     dividend = y - w * l - x;
-	cchi		= w * (c ^ (-1)) * (1-l);
+	cchi		= w * (1-l) / c;
 end;
 
 shocks;
