@@ -54,6 +54,7 @@ df['P_ratio'] = df['P_int'] / df['P_tan']
 
 #plt.style.use('fivethirtyeight')
 #plt.style.use('seaborn')
+plt.style.use('default')
 fig, ax1 = plt.subplots()
 color = 'tab:red'
 ax1.set_xlabel('Date')
