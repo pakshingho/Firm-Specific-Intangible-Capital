@@ -93,7 +93,7 @@ shocks;
 var e1 = sigma1^2;
 end;
 
-steady;
+steady(solve_algo=4);
 
 stoch_simul(irf = 50, order = 1);
 %stoch_simul(hp_filter = 1600, irf = 80, order = 1);
