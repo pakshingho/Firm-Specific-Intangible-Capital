@@ -157,7 +157,7 @@ initval;
     
     sdf = bbeta;
 	rf			= (1 / bbeta) - 1;
-    rk          = (1 / bbeta) - 1 + delta;
+    rk          = (1 / bbeta) - 1 + deltaK;
     n   = n_ss;
     n1  = 1/6;
     n2  = n - n1;
