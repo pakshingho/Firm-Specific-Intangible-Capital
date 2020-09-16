@@ -14,7 +14,7 @@ varexo e1;
 parameters 
 alpha gamma delta rho1 sigma1
 // Utility function
-bbeta eeta cchi l_ss;
+bbeta cchi l_ss;
 %----------------------------------------------------------------
 % 2. Calibration
 %----------------------------------------------------------------
