@@ -1,5 +1,5 @@
 %----------------------------------------------------------------
-% GE CES version with both n1 n2 z1 z2 sk sh (shares)
+% GE Cobb-Douglas version with both n1 n2 z1 z2 sk sh (shares)
 %----------------------------------------------------------------
 
 %----------------------------------------------------------------
@@ -48,10 +48,10 @@ parameters
 bbeta cchi l_ss
 
 // Technology 1
-lambda1 theta1 alpha1 gamma1 deltaK rho1 sigma1
+theta1 alpha1 gamma1 deltaK rho1 sigma1
 
 // Technology 2
-lambda2 theta2 alpha2 gamma2 deltaH rho2 sigma2
+theta2 alpha2 gamma2 deltaH rho2 sigma2
 ;
 
 %----------------------------------------------------------------
@@ -63,8 +63,7 @@ n_ss 		= 1 / 3;
 cchi        = 1.75;
 
 // Technology 1
-lambda1 = 1.1;
-theta1  = 0.5;
+theta1  = 0.01;
 alpha1  = 0.3;
 gamma1  = 0.6;
 deltaK  = 0.1;
@@ -72,7 +71,6 @@ rho1    = 0.95;
 sigma1  = 0.05;
 
 // Technology 2
-lambda2 = 0.9;
 theta2  = 0.4;
 alpha2  = 0.4;
 gamma2  = 0.5;
@@ -96,36 +94,36 @@ model;
 
     // 4. Production function 1
     y1     = k1 ^ alpha1 * (exp(z1) * n1) ^ gamma1;
-    k1 = ( theta1 * ( sk * k(-1) ) ^ ((lambda1 - 1) / lambda1) + (1 - theta1) * ( sh * h(-1) ) ^ ((lambda1 - 1) / lambda1) ) ^ (lambda1 / (lambda1 - 1));
+    k1 = ( sk * k(-1) ) ^ theta1 * ( sh * h(-1) ) ^ (1 - theta1);
     
     // 5. Production function 2
     y2     = k2 ^ alpha2 * (exp(z2) * n2) ^ gamma2;
-    k2 = ( theta2 * ( (1 - sk ) * k(-1) ) ^ ((lambda2 - 1) / lambda2) + (1 - theta2) * ( (1 - sh ) * h(-1) ) ^ ((lambda2 - 1) / lambda2) ) ^ (lambda2 / (lambda2 - 1));
+    k2 = ( (1 - sk ) * k(-1) ) ^ theta2 * ( (1 - sh ) * h(-1) ) ^ (1 - theta2);
     
     // 6. capital accumulation
     k     = i + (1 - deltaK) * k(-1);
     h     = y2 + (1 - deltaH) * h(-1);
 
     // 7. First order equation for sk
-    alpha1 * theta1 * y1 / k1 * (k1 / ( sk * k(-1) ) ) ^ (1 / lambda1) = 
-    q * alpha2 * theta2 * y2 / k2 * (k2 / ( ( 1 - sk ) * k(-1) ) ) ^ (1 / lambda2);
+    alpha1 * theta1 * y1 / ( sk * k(-1) )  = 
+    q * alpha2 * theta2 * y2 / ( ( 1 - sk ) * k(-1) );
 
     // 8. First order equation for sh
-    alpha1 * (1 - theta1) * y1 / k1 * ( k1 / ( sh * h(-1) ) ) ^ (1 / lambda1) = 
-    q * alpha2 * (1 - theta2) * y2 / k2 * ( k2 / ( ( 1 - sh ) * h(-1) ) ) ^ (1 / lambda2);    
+    alpha1 * (1 - theta1) * y1 / ( sh * h(-1) )  = 
+    q * alpha2 * (1 - theta2) * y2 / ( ( 1 - sh ) * h(-1) );    
 
     // 9. First order equation for k
     1 = 
-        sdf * ( alpha1 * theta1 * y1(+1) / k1(+1) * ( k1(+1) / ( sk(+1) * k ) ) ^ (1 / lambda1) * sk(+1)
-        + q(+1) * alpha2 * theta2 * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sk(+1) ) * k ) ) ^ (1 / lambda2) * ( 1 - sk(+1) )
+        sdf * ( alpha1 * theta1 * y1(+1) / k 
+        + q(+1) * alpha2 * theta2 * y2(+1) / k 
         + ( 1 - deltaK ) );
 
-    rk = alpha1 * theta1 * y1(+1) / k1(+1) * ( k1(+1) / ( sk(+1) * k ) ) ^ (1 / lambda1);
+    rk = alpha1 * theta1 * y1(+1) / ( sk(+1) * k );
 
     // 10. First order equation for h
     q = 
-        sdf * ( alpha1 * (1 - theta1) * y1(+1) / k1(+1) * ( k1(+1) / ( sh(+1) * h ) ) ^ (1 / lambda1) * sh(+1)
-        + q(+1) * ( ( 1 - deltaH ) + alpha2 * (1 - theta2) * y2(+1) / k2(+1) * ( k2(+1) / ( ( 1 - sh(+1) ) * h ) ) ^ (1 / lambda2) * ( 1 - sh(+1) ) ) );
+        sdf * ( alpha1 * (1 - theta1) * y1(+1) / h
+        + q(+1) * ( ( 1 - deltaH ) + alpha2 * (1 - theta2) * y2(+1) / h ) );
 
     // 11. First order equation for n1
     w      = gamma1 * y1 / n1;
@@ -161,15 +159,15 @@ initval;
 	rf			= (1 / bbeta) - 1;
     rk          = (1 / bbeta) - 1 + deltaK;
     n   = n_ss;
-    n1  = 1/6;
+    n1  = 0.246566;
     n2  = n - n1;
-    sk = 0.5;
-    sh = 0.5;
+    sk = 0.0496382;
+    sh = 0.775143;
 
-    k1  = 0.476767;
-	k = 0.608592;
+    k1  = 0.72499;
+	k = 0.215165;
 
-    h = 0.573028;
+    h = 0.961142;
     
 
     i   = k * deltaK;
@@ -179,7 +177,7 @@ initval;
     w   = gamma1 * y1/n1;
     c = y1 - i;
 
-    k2 = ( theta2 * ( (1 - sk ) * k ) ^ ((lambda2 - 1) / lambda2) + (1 - theta2) * ( (1 - sh ) * h ) ^ ((lambda2 - 1) / lambda2) ) ^ (lambda2 / (lambda2 - 1));
+    k2 = ( (1 - sk ) * k ) ^ theta2 * ( (1 - sh ) * h ) ^ (1 - theta2);
     q  = 0.777222 ;
 
     profit = y1 - w * n - rk * k;

@@ -190,7 +190,7 @@ end;
 
 //steady(maxit = 1000000);
 steady(solve_algo=4);
-check;
+//check;
 
-stoch_simul(irf = 50, order = 1);
-//stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments, nograph, nodisplay);
+//stoch_simul(irf = 50, order = 1);
+stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments, nograph, nodisplay);
