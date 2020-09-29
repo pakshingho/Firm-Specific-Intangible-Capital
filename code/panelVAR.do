@@ -1,6 +1,6 @@
 clear *
 
-use http://www.nber.org/nberces/nberces5811/sic5811.dta
+use http://data.nber.org/nberces/nberces5811/sic5811.dta
 
 *tsset sic year
 xtset sic year, yearly
