@@ -359,8 +359,8 @@ irfHP = resultHP.irf(periods=16)
 irfHP.plot(orth=True)
 irfHP.plot_cum_effects(orth=True)
 
-irfHP.plot(orth=True, impulse='logDiffOutput')
-irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput')
+irfHP.plot(orth=False, impulse='logDiffOutput')
+irfHP.plot_cum_effects(orth=False, impulse='logDiffOutput')
 
 irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput', response='logDiffOutput')
 irfHP.plot_cum_effects(orth=True, impulse='logDiffOutput', response='logDiffI_tan')
@@ -403,8 +403,8 @@ irfHP_H = resultHP_H.irf(periods=16)
 irfHP_H.plot(orth=True)
 irfHP_H.plot_cum_effects(orth=True)
 
-irfHP_H.plot(orth=True, impulse='logDiffOutput')
-irfHP_H.plot_cum_effects(orth=True, impulse='logDiffOutput')
+irfHP_H.plot(orth=False, impulse='logDiffOutput')
+irfHP_H.plot_cum_effects(orth=False, impulse='logDiffOutput')
 
 """
 Estimate 3-VAR using 400*log-differenced series Low
@@ -421,8 +421,8 @@ irfHP_L = resultHP_L.irf(periods=16)
 irfHP_L.plot(orth=True)
 irfHP_L.plot_cum_effects(orth=True)
 
-irfHP_L.plot(orth=True, impulse='logDiffOutput')
-irfHP_L.plot_cum_effects(orth=True, impulse='logDiffOutput')
+irfHP_L.plot(orth=False, impulse='logDiffOutput')
+irfHP_L.plot_cum_effects(orth=False, impulse='logDiffOutput')
 
 """
 Plot
@@ -468,7 +468,7 @@ plt.title('Cumulative responses of output shock to output')
 pd.Series(irfHP_H.orth_cum_effects[0:21,2,2]/irfHP_H.orth_cum_effects[0:21,2,2][0]).plot()
 #pd.Series(irfHP.orth_cum_effects[0:21,2,2]).plot()
 pd.Series(irfHP_L.orth_cum_effects[0:21,2,2]/irfHP_L.orth_cum_effects[0:21,2,2][0]).plot()
-plt.legend(['High intangible share', 
+plt.legend(['High intangible share',
             #'M', 
             'Low intangible share'])
 plt.title('Cumulative responses of output shock to output (normalized)')
