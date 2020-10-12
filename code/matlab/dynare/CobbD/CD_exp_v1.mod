@@ -1,5 +1,5 @@
 %----------------------------------------------------------------
-% Cobb-Douglas version with both l1 l2 z1 z2 level-linearization
+% Cobb-Douglas version with both l1 l2 z1 z2 log-linearization
 %----------------------------------------------------------------
 
 %----------------------------------------------------------------
@@ -81,42 +81,42 @@ w       = 1;
 
 model;
     // 1. Production function 1
-    y1     = k1 ^ alpha1 * (exp(z1) * l1) ^ gamma1;
-    k1 =  kT1 ^ theta1 * kI1 ^ (1 - theta1);
+    exp(y1)     = exp(k1) ^ alpha1 * (exp(z1) * exp(l1)) ^ gamma1;
+    exp(k1) =  exp(kT1) ^ theta1 * exp(kI1) ^ (1 - theta1);
     
     // 2. Production function 2
-    y2     = k2 ^ alpha2 * (exp(z2) * l2) ^ gamma2;
-    k2 =  kT2 ^ theta2 * kI2 ^ (1 - theta2);
+    exp(y2)     = exp(k2) ^ alpha2 * (exp(z2) * exp(l2)) ^ gamma2;
+    exp(k2) =  exp(kT2) ^ theta2 * exp(kI2) ^ (1 - theta2);
     
     // 3. capital accumulation
-    kT     = x + (1 - deltaT) * kT(-1);
-    kI     = y2 + (1 - deltaI) * kI(-1);
+    exp(kT)     = exp(x) + (1 - deltaT) * exp(kT(-1));
+    exp(kI)     = exp(y2) + (1 - deltaI) * exp(kI(-1));
 
     // 4. First order equation for kT1
-    alpha1 * theta1 * y1 / kT1 = 
-    q * alpha2 * theta2 * y2 / kT2;
+    alpha1 * theta1 * exp(y1) / exp(kT1) = 
+    exp(q) * alpha2 * theta2 * exp(y2) / exp(kT2);
 
     // 5. First order equation for kI1
-    alpha1 * (1 - theta1) * y1 / kI1 = 
-    q * alpha2 * (1 - theta2) * y2 / kI2;
+    alpha1 * (1 - theta1) * exp(y1) / exp(kI1) = 
+    exp(q) * alpha2 * (1 - theta2) * exp(y2) / exp(kI2);
 
     // 6. First order equation for kT
-    (1 - deltaT) + q(+1) * alpha2 * theta2 * y2(+1) / kT2(+1) =
+    (1 - deltaT) + exp(q(+1)) * alpha2 * theta2 * exp(y2(+1)) / exp(kT2(+1)) =
     1 + ri;
 
     // 7. First order equation for kI
-    q(+1) * ( (1 - deltaI) + alpha2 * (1 - theta2) * y2(+1) / kI2(+1) ) = 
-    (1 + ri) * q;
+    exp(q(+1)) * ( (1 - deltaI) + alpha2 * (1 - theta2) * exp(y2(+1)) / exp(kI2(+1)) ) = 
+    (1 + ri) * exp(q);
 
     // 8. First order equation for l1
-    w      = gamma1 * y1 / l1;
+    w      = gamma1 * exp(y1) / exp(l1);
 
     // 9. First order equation for l2
-    w      = q * gamma2 * y2 / l2;
+    w      = exp(q) * gamma2 * exp(y2) / exp(l2);
 
     // 11. Tangible and intangible capital identity
-    kT(-1) = kT1 + kT2;
-    kI(-1) = kI1 + kI2;
+    exp(kT(-1)) = exp(kT1) + exp(kT2);
+    exp(kI(-1)) = exp(kI1) + exp(kI2);
 
     // 11. exogenous processes
     z1     = rho1 * z1(-1) + e1;
@@ -131,24 +131,24 @@ end;
 initval;
     z1 = 0;
     z2 = 0;
-    l1  = 0.0443193;
-    l2  = 0.00597832;
+    l1  = log(0.0443293);
+    l2  = log(0.00594081);
   
-    kT = 0.103943;
-    kT1 = 0.0886386;
-    kT2 = kT - kT1;
-    kI = 0.10527;
-    kI1 = 0.0836149;
-    kI2 = kI - kI1;
+    kT = log(0.103943);
+    kT1 = log(0.0886386);
+    kT2 = log(exp(kT) - exp(kT1));
+    kI = log(0.10527);
+    kI1 = log(0.0836149);
+    kI2 = log(exp(kI) - exp(kI1));
 
-    x   = kT * deltaT;
-    y2  = kI * deltaI;
+    x   = log(exp(kT) * deltaT);
+    y2  = log(exp(kI) * deltaI);
 
-    k1  = kT1 ^ theta1 * kI1 ^ (1 - theta1);
-    y1  = k1 ^ alpha1 * (exp(z1) * l1) ^ gamma1;
-    k2  = kT2 ^ theta2 * kI2 ^ (1 - theta2);
+    k1  = log(exp(kT1) ^ theta1 * exp(kI1) ^ (1 - theta1));
+    y1  = log(exp(k1) ^ alpha1 * (exp(z1) * exp(l1)) ^ gamma1);
+    k2  = log(exp(kT2) ^ theta2 * exp(kI2) ^ (1 - theta2));
 
-    q  = 0.757202;
+    q  = log(0.757202);
 end;
 
 shocks;
