@@ -1,6 +1,6 @@
 %----------------------------------------------------------------
 % Cobb-Douglas version with both l1 l2 z1 z2 log-linearization
-% Matching income shares.
+% Matching income shares for pre periods.
 %----------------------------------------------------------------
 
 %----------------------------------------------------------------
@@ -53,7 +53,7 @@ ri w;
 %----------------------------------------------------------------
 
 // Technology 1
-theta1  = 0.625;
+theta1  = 0.65;
 alpha1  = 0.4;
 gamma1  = 0.6;
 deltaT  = 0.1;
@@ -63,7 +63,7 @@ sigma1  = 0.01;
 // Technology 2
 theta2  = 0.64;
 alpha2  = 0.4;
-gamma2  = 0.5;
+gamma2  = 0.51;
 deltaI  = 0.158;
 rho2    = 0.9;
 sigma2  = 0.1;

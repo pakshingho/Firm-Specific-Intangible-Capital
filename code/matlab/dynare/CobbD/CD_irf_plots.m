@@ -57,39 +57,54 @@ ylabel(han,'Deviation','fontweight', 'bold','FontSize', 14);
 xlabel(han,'Time','fontweight', 'bold','FontSize', 14);
 %title(han,'yourTitle');
 
-%% log-linearization
+%% Generate IRFs from DYNARE (log-linearization)
 close all
+dynare CD_exp_v2 ;         % C-D post periods
+irfs_cd_exp_post = oo_.irfs;
+
+dynare CD_exp_v22 ;         % C-D pre 
+irfs_cd_exp_pre = oo_.irfs;
+
+l3 = {irfs_cd_exp_post, irfs_cd_exp_pre};
 fig = figure;
 subplot(2,2,1);
-plot(-9:50, [zeros(1, 10), 100*l2{1}.z1_e1], '-r', 'LineWidth', 1);
-xlim([-10 50]);
-ylim([min([zeros(1, 60), 100*l2{1}.z1_e1]) max([100*l2{1}.z1_e1])])
+plot(-9:50, [zeros(1, 10), 100*l3{1}.z1_e1], '-xr', 'LineWidth', 1);
+hold on
+plot(-9:50, [zeros(1, 10), 100*l3{2}.z1_e1], '-b', 'LineWidth', 1);
+xlim([-1 25]);
+ylim([min([zeros(1, 60), 100*l3{1}.z1_e1, 100*l3{2}.z1_e1]) max([100*l3{1}.z1_e1, 100*l3{2}.z1_e1])])
 %xlabel('time');
 title('Productivity Shock', 'fontweight', 'bold', 'FontSize', 14);
 grid on
 
 subplot(2,2,2);
-p1 = plot(-9:50, [zeros(1, 10), 100*l2{1}.y1_e1], '-r', 'LineWidth', 1);
-xlim([-10 50]);
-ylim([min([zeros(1, 60), 100*l2{1}.y1_e1]) max([100*l2{1}.y1_e1])]);
+p1 = plot(-9:50, [zeros(1, 10), 100*l3{1}.y1_e1], '-r', 'LineWidth', 1);
+hold on 
+p2 = plot(-9:50, [zeros(1, 10), 100*l3{2}.y1_e1], '-b', 'LineWidth', 1);
+xlim([-1 25]);
+ylim([min([zeros(1, 60), 100*l3{1}.y1_e1, 100*l3{2}.y1_e1]) max([100*l3{1}.y1_e1, 100*l3{2}.y1_e1])]);
 %xlabel('time');
 title('Output', 'fontweight', 'bold', 'FontSize', 14);
 grid on
-legend([p1], {'\theta_1=0.5'}, 'fontweight', 'bold', 'FontSize', 14, 'TextColor', 'black')
+legend([p1, p2], {'post-periods', 'pre-periods'}, 'fontweight', 'bold', 'FontSize', 14, 'TextColor', 'black')
 legend('boxoff')
 
 subplot(2,2,3);
-plot(-9:50, [zeros(1, 10), 100*l2{1}.x_e1], '-r', 'LineWidth', 1);
-xlim([-10 50]);
-ylim([min([zeros(1, 60), 100*l2{1}.x_e1]) max([100*l2{1}.x_e1])]);
+plot(-9:50, [zeros(1, 10), 100*l3{1}.x_e1], '-r', 'LineWidth', 1);
+hold on
+plot(-9:50, [zeros(1, 10), 100*l3{2}.x_e1], '-b', 'LineWidth', 1);
+xlim([-1 25]);
+ylim([min([zeros(1, 60), 100*l3{1}.x_e1, 100*l3{2}.x_e1]) max([100*l3{1}.x_e1, 100*l3{2}.x_e1])]);
 %xlabel('time');
 title('Tangible Investment', 'fontweight', 'bold', 'FontSize', 14);
 grid on
 
 subplot(2,2,4);
-plot(-9:50, [zeros(1, 10), 100*l2{1}.y2_e1], '-r', 'LineWidth', 1);
-xlim([-10 50]);
-ylim([min([zeros(1, 60), 100*l2{1}.y2_e1]) max([100*l2{1}.y2_e1])]);
+plot(-9:50, [zeros(1, 10), 100*l3{1}.y2_e1], '-r', 'LineWidth', 1);
+hold on 
+plot(-9:50, [zeros(1, 10), 100*l3{2}.y2_e1], '-b', 'LineWidth', 1);
+xlim([-1 25]);
+ylim([min([zeros(1, 60), 100*l3{1}.y2_e1, 100*l3{2}.y2_e1]) max([100*l3{1}.y2_e1, 100*l3{2}.y2_e1])]);
 %xlabel('time');
 title('Intangible Investment', 'fontweight', 'bold', 'FontSize', 14);
 grid on

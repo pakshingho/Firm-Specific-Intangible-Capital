@@ -1,6 +1,6 @@
 %----------------------------------------------------------------
 % Cobb-Douglas version with both l1 l2 z1 z2 log-linearization
-% Matching income shares.
+% Matching income shares for pre periods.
 %----------------------------------------------------------------
 
 %----------------------------------------------------------------
@@ -53,7 +53,7 @@ ri w;
 %----------------------------------------------------------------
 
 // Technology 1
-theta1  = 0.625;
+theta1  = 0.65;
 alpha1  = 0.4;
 gamma1  = 0.6;
 deltaT  = 0.1;
@@ -61,16 +61,16 @@ rho1    = 0.95;
 sigma1  = 0.01;
 
 // Technology 2
-theta2  = 0.64;
-alpha2  = 0.4;
-gamma2  = 0.5;
+theta2  = 0.6576;
+alpha2  = 0.6373;
+gamma2  = 0.32;
 deltaI  = 0.158;
 rho2    = 0.9;
 sigma2  = 0.1;
 
 // Exogenous prices
 ri      = 0.04;
-w       = 1; % 0.72; % match q = 0.9
+w       = 1; % 0.745599; try to match q=0.925
 
 
 %----------------------------------------------------------------
@@ -160,4 +160,4 @@ steady(solve_algo=4);
 
 //stoch_simul(irf = 50, order = 1);
 stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments, nograph, nodisplay);
-//stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments) y1;
+//stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments) y1 z1;
