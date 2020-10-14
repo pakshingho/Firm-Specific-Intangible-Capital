@@ -1,6 +1,6 @@
 %----------------------------------------------------------------
 % Cobb-Douglas version with both l1 l2 z1 z2 log-linearization
-% Matching income shares.
+% Matching income shares for post periods.
 %----------------------------------------------------------------
 
 %----------------------------------------------------------------
@@ -70,7 +70,7 @@ sigma2  = 0.1;
 
 // Exogenous prices
 ri      = 0.04;
-w       = 1;
+w       = 1; % 0.745599; try to match q=0.925
 
 
 %----------------------------------------------------------------
@@ -160,4 +160,4 @@ steady(solve_algo=4);
 
 //stoch_simul(irf = 50, order = 1);
 stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments, nograph, nodisplay);
-//stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments) y1;
+//stoch_simul(irf = 50, order = 1, nocorr, nofunctions, nomoments) y1 z1;
