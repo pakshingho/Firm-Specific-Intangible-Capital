@@ -163,6 +163,19 @@ legend('topright',
                 expression(I.tan/Y)
                 ),
        col=c(1,2,3,4,5,6,7), lty=rep(1,7), cex=1)
+
+ts.plot(tinvdef/gdpdef-1, col=1, ylab='Ratios')
+lines(ipdef/tinvdef-1, col=2)
+lines((ip/ipdef)/(tinv/tinvdef), col=3)
+lines((tinv/tinvdef)/(gdp/gdpdef), col=4)
+legend('topright', 
+       legend=c(expression(P^tan/P^Y-1), 
+                expression(P^int/P^tan-1),
+                expression(real.int/real.tan),
+                expression(real.tan/Y)
+       ),
+       col=c(1,2,3,4), lty=rep(1,4), cex=1)
+
 # correlation
 cor(cbind(ip/inv, ip/(inv-ip), ipdef/invdef, inv/gdp, invdef/gdpdef))
 
