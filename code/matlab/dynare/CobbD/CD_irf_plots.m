@@ -122,7 +122,7 @@ close all;
 
 dynare CD_exp_v2;
 irfs_cd_exp = oo_.irfs;
-irfs_cd_exp.y1_e1(1) = 0.001884;
+
 dynare CD_exp_high_v2; 
 irfs_high_exp = oo_.irfs;
 
@@ -195,7 +195,6 @@ close all;
 
 dynare CD_exp_v2;
 irfs_cd_exp = oo_.irfs;
-irfs_cd_exp.y1_e1(1) = 0.001884;
 l4 = {irfs_cd_exp};
 
 fig = figure;
